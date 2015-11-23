@@ -37,6 +37,12 @@ private:
 
     QString current_Mono_Command;
 
+    QString mono_response;
+    QString stepper_response;
+
+    int stepper_min_limit = 0;
+    int stepper_max_limit = 20;
+
     double current_Stepper_Position;
 
     QPen pen;
