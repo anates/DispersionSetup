@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>596</height>
+    <height>676</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -159,6 +159,11 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Seite</string>
+       </attribute>
       </widget>
       <widget class="QWidget" name="Scan">
        <attribute name="title">

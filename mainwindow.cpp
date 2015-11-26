@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Init variables
     this->mono_response = "";
     this->stepper_response = "";
+    this->current_Mono_Position = 0;
     //load current serial port list
     QList<QSerialPortInfo> list;
     list = QSerialPortInfo::availablePorts();
@@ -18,6 +19,17 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stepper_connections->addItem(list[i].portName());
     }
     ui->scanProgress->setValue(0);
+    this->logDevice = new AudioIn();
+    qDebug() << QString::number(Pa_Initialize());
+    this->params.device = Pa_GetDefaultInputDevice();
+    this->params.channelCount = 1;
+    this->params.sampleFormat = PA_SAMPLE_TYPE;
+    this->params.suggestedLatency = Pa_GetDeviceInfo( this->params.device )->defaultLowInputLatency;
+    this->params.hostApiSpecificStreamInfo = NULL;
+    this->logDevice->initAudioIn(this->params, 5);
+    this->logDevice->testAudioIn();
+    connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
+    connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
 }
 
 MainWindow::~MainWindow()
@@ -26,6 +38,8 @@ MainWindow::~MainWindow()
         delete this->monochromator;
     if(this->stepper != NULL)
         delete this->stepper;
+    if(this->logDevice != NULL)
+        delete this->logDevice;
     delete ui;
 }
 
@@ -75,17 +89,7 @@ void MainWindow::on_Send_Data_Mono_clicked()
             emit this->executeCommandMono("FFFFFF", 0);
         else if(this->current_Mono_Command == "Goto position")
         {
-            double value;
-            if(ui->Mono_Value_1->text().isEmpty())
-                value = 0;
-            else
-                value = ui->Mono_Value_1->text().toInt();
-            QString wavelength;
-            if(QString::number((qlonglong)value, 16).length() == 3)
-                wavelength = "0" + QString::number((qlonglong)value, 16);
-            else
-                wavelength = QString::number((qlonglong)value, 16);
-            emit this->executeCommandMono("10" + wavelength, 0);
+            this->moveMonoToPosition(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
         }
         else if(this->current_Mono_Command == "Get current position")
         {
@@ -119,29 +123,13 @@ void MainWindow::on_Send_Data_Stepper_clicked()
         }
         else if(this->current_Stepper_Command == "Move absolute")
         {
-            double newPosition = 0;
-            if(ui->Stepper_Value_1->text().isEmpty())
-                newPosition = 0;
-            else
-                newPosition = ui->Stepper_Value_1->text().toDouble();
-            if((newPosition >= this->stepper_min_limit) && (newPosition <= this->stepper_max_limit))
-            {
-                emit this->executeCommandStepper("1PA" + QString::number(newPosition), 0);
-                this->current_Stepper_Position = newPosition;
-            }
+            if(ui->Stepper_Value_1->text().isEmpty() == false)
+                this->moveStepperToAbsPosition(ui->Stepper_Value_1->text().toDouble());
         }
         else if(this->current_Stepper_Command == "Move relative")
         {
-            double newPosition = 0;
-            if(ui->Stepper_Value_1->text().isEmpty())
-                newPosition = 0;
-            else
-                newPosition = ui->Stepper_Value_1->text().toDouble();
-            if(this->current_Stepper_Position+newPosition <= this->stepper_max_limit && this->current_Stepper_Position + newPosition >= this->stepper_min_limit)
-            {
-                this->current_Stepper_Position = newPosition;
-                emit this->executeCommandStepper("1PR" + QString::number(newPosition), 0);
-            }
+            if(ui->Stepper_Value_1->text().isEmpty() == false)
+                this->moveStepperToRelPosition(ui->Stepper_Value_1->text().toDouble());
         }
         else
             qDebug() << "Unknown command!";
@@ -233,15 +221,95 @@ void MainWindow::on_startScan_clicked()
     if(ui->startValue->text().isEmpty() || ui->stopValue->text().isEmpty() || ui->startValue->text().toInt() >= ui->stopValue->text().toInt())
         return;
 
+    if(this->current_Mono_Position != ui->startValue->text().toInt())
+        this->moveMonoToPosition(ui->startValue->text().toInt());
+    QThread::msleep(1000);
     for(int i = 0; i < ui->stopValue->text().toInt() - ui->startValue->text().toInt(); i++)
     {
-        this->dispValues.push_back(qMakePair(i + ui->startValue->text().toInt(), this->getMaxValue()));
+        this->dispValues.push_back(qMakePair(i + ui->startValue->text().toInt(), 1));
+        this->moveMonoToPosition(this->current_Mono_Position + i);
     }
     this->replot();
 
 }
 
-double MainWindow::getMaxValue()
+void MainWindow::moveMonoToPosition(int pos)
 {
-    return 0;
+    int value;
+    if(pos == 0 || pos == this->current_Mono_Position)
+        value = 0;
+    else
+        value = pos;
+    QString wavelength;
+    this->current_Mono_Position = value;
+    if(QString::number((qlonglong)value, 16).length() == 3)
+        wavelength = "0" + QString::number((qlonglong)value, 16);
+    else
+        wavelength = QString::number((qlonglong)value, 16);
+    emit this->executeCommandMono("10" + wavelength, 0);
+}
+
+void MainWindow::moveStepperToAbsPosition(double pos)
+{
+    double newPosition = 0;
+    newPosition = pos;
+    if((newPosition >= this->stepper_min_limit) && (newPosition <= this->stepper_max_limit))
+    {
+        emit this->executeCommandStepper("1PA" + QString::number(newPosition), 0);
+        this->current_Stepper_Position = newPosition;
+    }
+}
+
+void MainWindow::moveStepperToRelPosition(double pos)
+{
+    double newPosition = 0;
+    newPosition = pos;
+    if(this->current_Stepper_Position+newPosition <= this->stepper_max_limit && this->current_Stepper_Position + newPosition >= this->stepper_min_limit)
+    {
+        this->current_Stepper_Position = newPosition;
+        emit this->executeCommandStepper("1PR" + QString::number(newPosition), 0);
+    }
+}
+
+void MainWindow::getCurValue(double val)
+{
+    this->getMaxValue(val);
+}
+
+void MainWindow::init_scan()
+{
+    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/(double)num_steps;
+    this->moveStepperToAbsPosition(this->stepper_min_limit);
+    QThread::msleep(100);
+    qDebug() << "Make sure that the stepper is not moving anymore!";
+    this->curStep = 0;
+    this->getMaxValue(0);
+}
+
+void MainWindow::getMaxValue(double val)
+{
+    this->curAmplitude = val;
+    while(this->curStep < this->stepper_max_limit)
+    {
+        if(this->curStep == 0)
+        {
+            emit this->getNewValue();
+        }
+        else
+        {
+            this->curScanVals.append(val);
+            emit this->getNewValue();
+        }
+        this->curStep += this->step_size;
+    }
+    if(this->curStep + this->step_size >= this->stepper_max_limit)
+    {
+        double curVal = 0;
+        for(int i = 0; i < this->curScanVals.length(); i++)
+        {
+            if(this->curScanVals[i] >= curVal)
+                curVal = this->curScanVals[i];
+        }
+        emit this->maxValue(curVal);
+    }
 }

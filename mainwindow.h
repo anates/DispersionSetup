@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSerialPortInfo>
 #include <QVector>
+#include <QThread>
 #include <QPair>
 #include <qwt/qwt_plot.h>
 #include <qwt/qwt_plot_curve.h>
@@ -13,6 +14,7 @@
 #include <qwt/qwt_picker_machine.h>
 #include "serial_controller.h"
 #include "add_functions.h"
+#include "../Test_Audio_processing/audioin.h"
 
 namespace Ui {
 class MainWindow;
@@ -32,6 +34,10 @@ signals:
 
     void executeCommandMono(QString command, double delay);
 
+    void getNewValue(void);
+
+    void maxValue(double val);
+
 private:
     QString current_Stepper_Command;
 
@@ -40,7 +46,9 @@ private:
     QString mono_response;
     QString stepper_response;
 
-    int stepper_min_limit = 0;
+    int current_Mono_Position;
+
+    int stepper_min_limit = 3;
     int stepper_max_limit = 20;
 
     double current_Stepper_Position;
@@ -52,10 +60,28 @@ private:
     QVector<QPair<int, double> > dispValues;
     QMap<double, double> plotData;
 
+    AudioIn *logDevice = NULL;
+    PaStreamParameters params;
+
+    double curAmplitude = 0;
+
+    int num_steps = 100;
+    double step_size = 0;
+    int curStep = 0;
+
+    QVector<double> curScanVals;
+
     void replot();
 
-    double getMaxValue();
+    void getMaxValue(double val);
 
+    void init_scan();
+
+    void moveMonoToPosition(int pos);
+
+    void moveStepperToAbsPosition(double pos);
+
+    void moveStepperToRelPosition(double pos);
 
 private slots:
     void on_connectMono_clicked();
@@ -76,6 +102,8 @@ public slots:
     void Received_Stepper_Data(QString &data);
 
     void Received_Mono_Data(QString &data);
+
+    void getCurValue(double val);
 
 private:
     Ui::MainWindow *ui;
