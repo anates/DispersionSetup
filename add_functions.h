@@ -4,7 +4,7 @@
 #include <QPair>
 #include <QMap>
 
-void vectorToMap(const QVector<QPair<int, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
+void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
 
 #endif // ADD_FUNCTIONS
 

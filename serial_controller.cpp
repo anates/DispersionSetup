@@ -44,11 +44,15 @@ void serial_controller_worker::read_data()
 {
     QByteArray data = this->serial->readAll();
     storage += QString::fromLatin1(data.data());
-    QString tmp = QString::fromLatin1(data.data());
-    int val = (int)tmp.toStdString().c_str()[0];
+
     emit this->response(storage);
-    if(val == 24)
-        storage.clear();
+    if(this->useHex)
+    {
+        QString tmp = QString::fromLatin1(data.data());
+        int val = (int)tmp.toStdString().c_str()[0];
+        if(val == 24)
+            storage.clear();
+    }
 
 }
 
@@ -79,12 +83,13 @@ void serial_controller_worker::transaction(const QString &request, double delay)
 {
 //    qDebug() << "TransAction started!";
     this->delay_write = delay;
+    this->storage.clear();
     QByteArray requestData;
     if(this->useHex == false)
     {
         QString request_enter = request + QString("\x00D\x00A");
-        qDebug() << "Converted QString: " << request.toInt();
-        QByteArray requestData = request_enter.toLocal8Bit();
+        qDebug() << "Converted QString: " << request_enter;
+        requestData = request_enter.toLocal8Bit();
     }
     else
     {

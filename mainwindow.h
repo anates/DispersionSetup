@@ -57,11 +57,13 @@ private:
     QwtPlotCurve Curve;
     QwtPlotGrid Grid;
 
-    QVector<QPair<int, double> > dispValues;
+    QVector<QPair<double, double> > dispValues;
     QMap<double, double> plotData;
 
     AudioIn *logDevice = NULL;
     PaStreamParameters params;
+
+    double movementTime = 0;
 
     double curAmplitude = 0;
 
@@ -70,18 +72,23 @@ private:
     int curStep = 0;
 
     QVector<double> curScanVals;
+    QVector<QPair<int, QPair<double, double> > > DispResults;
 
     void replot();
 
-    void getMaxValue(double val);
+    QPair<double, double> getMaxValue(void);
 
     void init_scan();
+
+    void write_unformatted_file(const QVector<QPair<int, QPair<double, double> > > &Data, QString fileName);
 
     void moveMonoToPosition(int pos);
 
     void moveStepperToAbsPosition(double pos);
 
     void moveStepperToRelPosition(double pos);
+
+    void getEstimatedMovementTime(double relPos);
 
 private slots:
     void on_connectMono_clicked();
@@ -97,6 +104,10 @@ private slots:
     void on_mono_command_currentIndexChanged(const QString &arg1);
 
     void on_startScan_clicked();
+
+    void on_MovStopped_clicked();
+
+    void on_FullScan_clicked();
 
 public slots:
     void Received_Stepper_Data(QString &data);

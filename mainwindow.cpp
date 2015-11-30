@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->params.sampleFormat = PA_SAMPLE_TYPE;
     this->params.suggestedLatency = Pa_GetDeviceInfo( this->params.device )->defaultLowInputLatency;
     this->params.hostApiSpecificStreamInfo = NULL;
-    this->logDevice->initAudioIn(this->params, 5);
+    this->logDevice->initAudioIn(this->params, 15);
     this->logDevice->testAudioIn();
     connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
     connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
@@ -73,6 +73,7 @@ void MainWindow::on_connect_stepper_clicked()
     initCommand.append("Get current position");
     initCommand.append("Move absolute");
     initCommand.append("Move relative");
+    initCommand.append("Get movement time");
     ui->stepper_command->addItems(initCommand);
     ui->stepper_command->setCurrentIndex(0);
     this->current_Stepper_Command = "Initialize stepper motor controller";
@@ -131,12 +132,21 @@ void MainWindow::on_Send_Data_Stepper_clicked()
             if(ui->Stepper_Value_1->text().isEmpty() == false)
                 this->moveStepperToRelPosition(ui->Stepper_Value_1->text().toDouble());
         }
+        else if(this->current_Stepper_Command == "Get movement time")
+        {
+            this->getEstimatedMovementTime(ui->Stepper_Value_1->text().isEmpty()?0:ui->Stepper_Value_1->text().toDouble());
+        }
         else
             qDebug() << "Unknown command!";
     }
     ui->Stepper_Value_1->setText("");
 }
 
+
+void MainWindow::getEstimatedMovementTime(double relPos)
+{
+    emit this->executeCommandStepper("1PT"+QString::number(relPos), 0);
+}
 
 void MainWindow::Received_Mono_Data(QString &data)
 {
@@ -171,8 +181,20 @@ void MainWindow::Received_Mono_Data(QString &data)
 
 void MainWindow::Received_Stepper_Data(QString &data)
 {
-    this->stepper_response += data;
+    this->stepper_response.clear();
+    this->stepper_response = data;
+    data.clear();
     ui->stepper_result->setText(this->stepper_response);
+    if(this->stepper_response.contains("PT"))
+    {
+        QList<QString> response = this->stepper_response.split("PT");
+        this->movementTime = response.length() == 2?response[1].toDouble():0;
+    }
+    else if(this->stepper_response.contains("TP"))
+    {
+        QList<QString> response = this->stepper_response.split("TP");
+        this->current_Stepper_Position = response.length() == 2?response[1].toDouble():0;
+    }
 }
 
 void MainWindow::on_stepper_command_currentIndexChanged(const QString &arg1)
@@ -203,10 +225,19 @@ void MainWindow::replot()
     ui->resultPlot->setAxisTitle(QwtPlot::xBottom, "Wavelength [nm]");
     QVector<double> x;
     QVector<double> y;
+    //For debug:
+    for(int i = 0; i < this->dispValues.length(); i++)
+    {
+        qDebug() << "DispVal[" << i << "] is: " << QString::number(this->dispValues[i].first) << ", " << QString::number(this->dispValues[i].second) << '\n';
+    }
     if(this->dispValues.isEmpty() == false)
     {
         vectorToMap(this->dispValues, this->plotData);
         x = QVector<double>::fromList(this->plotData.keys());
+        qDebug() << "First element of plotData is: " << this->plotData.first();
+        qDebug() << "Length of plotData-values: " << this->plotData.values().length();
+        qDebug() << "Length of plotData-Keys: " << this->plotData.keys().length();
+        qDebug() << "First value: " << this->plotData.values().first();
         y = QVector<double>::fromList(this->plotData.values());
         this->Curve.setSamples(x, y);
         this->Curve.attach(ui->resultPlot);
@@ -214,23 +245,32 @@ void MainWindow::replot()
         ui->resultPlot->show();
         ui->resultPlot->replot();
     }
+    else
+        qDebug() << "Data size: " << this->dispValues.size();
 }
 
 void MainWindow::on_startScan_clicked()
 {
-    if(ui->startValue->text().isEmpty() || ui->stopValue->text().isEmpty() || ui->startValue->text().toInt() >= ui->stopValue->text().toInt())
-        return;
 
-    if(this->current_Mono_Position != ui->startValue->text().toInt())
-        this->moveMonoToPosition(ui->startValue->text().toInt());
-    QThread::msleep(1000);
-    for(int i = 0; i < ui->stopValue->text().toInt() - ui->startValue->text().toInt(); i++)
+    //Determine time to target
+    this->movementTime = 0;
+    this->getEstimatedMovementTime(fabs(this->current_Stepper_Position-this->stepper_min_limit));
+    QThread::msleep(100);
+    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/1000.0;//1000 steps
+    if(this->movementTime != 0)
     {
-        this->dispValues.push_back(qMakePair(i + ui->startValue->text().toInt(), 1));
-        this->moveMonoToPosition(this->current_Mono_Position + i);
+        this->moveStepperToAbsPosition(this->stepper_min_limit);
+        QThread::sleep(this->movementTime);
     }
-    this->replot();
-
+    else
+    {
+        this->moveStepperToAbsPosition(this->stepper_min_limit);
+        qDebug() << "Using stepsize of " << this->step_size;
+        qDebug() << "Please wait for movement stop and continue with the other button!";
+    }
+    this->getEstimatedMovementTime(this->step_size);
+    this->on_MovStopped_clicked();
+    ui->startScan->hide();
 }
 
 void MainWindow::moveMonoToPosition(int pos)
@@ -273,43 +313,84 @@ void MainWindow::moveStepperToRelPosition(double pos)
 
 void MainWindow::getCurValue(double val)
 {
-    this->getMaxValue(val);
+    //this->getMaxValue(val);
+    this->dispValues.push_back(qMakePair(this->current_Stepper_Position, val));
+    if(this->current_Stepper_Position + this->step_size < this->stepper_max_limit)
+    {
+        this->moveStepperToAbsPosition(this->current_Stepper_Position + this->step_size);
+        QThread::msleep(1.1*this->movementTime);
+        this->curStep++;
+        this->current_Stepper_Position += this->step_size;
+        qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
+        this->getNewValue();
+    }
+    else
+    {
+        qDebug() << "Scan finished!";
+        this->replot();
+    }
 }
+
+void MainWindow::write_unformatted_file(const QVector<QPair<int, QPair<double, double> > > &Data/*const QMap<double, double> &Data*/, QString fileName = "DispersionValues")
+{
+    fileName += ".txt";
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly)) {
+        qDebug() << file.errorString();
+        return;
+    }
+    QTextStream out(&file);
+    for(int i = 0; i < Data.size(); i++)
+    {
+        out << Data[i].first << '\t' << Data[i].second.first << '\t' << Data[i].second.second << '\n';
+    }
+
+    file.close();
+}
+
 
 void MainWindow::init_scan()
 {
-    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/(double)num_steps;
-    this->moveStepperToAbsPosition(this->stepper_min_limit);
-    QThread::msleep(100);
-    qDebug() << "Make sure that the stepper is not moving anymore!";
-    this->curStep = 0;
-    this->getMaxValue(0);
+//    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/(double)num_steps;
+//    this->moveStepperToAbsPosition(this->stepper_min_limit);
+//    QThread::msleep(100);
+//    qDebug() << "Make sure that the stepper is not moving anymore!";
+//    this->curStep = 0;
 }
 
-void MainWindow::getMaxValue(double val)
+QPair<double, double> MainWindow::getMaxValue(void)
 {
-    this->curAmplitude = val;
-    while(this->curStep < this->stepper_max_limit)
+    double maxVal = 0;
+    double curPos = 0;
+    for(int i = 0; i < this->dispValues.length(); i++)
     {
-        if(this->curStep == 0)
-        {
-            emit this->getNewValue();
-        }
-        else
-        {
-            this->curScanVals.append(val);
-            emit this->getNewValue();
-        }
-        this->curStep += this->step_size;
+        if(this->dispValues[i].second > maxVal)
+            curPos = this->dispValues[i].first;
     }
-    if(this->curStep + this->step_size >= this->stepper_max_limit)
+    return qMakePair(curPos, maxVal);
+}
+
+void MainWindow::on_MovStopped_clicked()
+{
+    this->curStep += this->step_size;
+    emit this->getNewValue();
+}
+
+void MainWindow::on_FullScan_clicked()
+{
+    if(ui->startValue->text().isEmpty() || ui->stopValue->text().isEmpty() || ui->startValue->text().toInt() >= ui->stopValue->text().toInt())
+        return;
+
+    if(this->current_Mono_Position != ui->startValue->text().toInt())
+        this->moveMonoToPosition(ui->startValue->text().toInt());
+    QThread::msleep(1000);
+    for(int i = 0; i < ui->stopValue->text().toInt() - ui->startValue->text().toInt(); i++)
     {
-        double curVal = 0;
-        for(int i = 0; i < this->curScanVals.length(); i++)
-        {
-            if(this->curScanVals[i] >= curVal)
-                curVal = this->curScanVals[i];
-        }
-        emit this->maxValue(curVal);
+        this->dispValues.clear();
+        this->on_startScan_clicked();
+        this->DispResults.push_back(qMakePair(this->current_Mono_Position, this->getMaxValue()));
+        this->moveMonoToPosition(this->current_Mono_Position + i);
+        QThread::msleep(500);
     }
+    this->write_unformatted_file(this->DispResults);
 }
