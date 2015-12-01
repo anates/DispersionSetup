@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //load current serial port list
     QList<QSerialPortInfo> list;
     list = QSerialPortInfo::availablePorts();
+    this->current_Measurement = 0;
     for(int i = 0; i < list.size(); i++)
     {
         ui->mono_Connections->addItem(list[i].portName());
@@ -26,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->params.sampleFormat = PA_SAMPLE_TYPE;
     this->params.suggestedLatency = Pa_GetDeviceInfo( this->params.device )->defaultLowInputLatency;
     this->params.hostApiSpecificStreamInfo = NULL;
-    this->logDevice->initAudioIn(this->params, 15);
+    this->logDevice->initAudioIn(this->params, 3);
     this->logDevice->testAudioIn();
     connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
     connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
@@ -112,11 +113,13 @@ void MainWindow::on_Send_Data_Stepper_clicked()
     {
         if(this->current_Stepper_Command == "Initialize stepper motor controller")
         {
-            emit this->executeCommandStepper("1OR?", 0.01);
+            //emit this->executeCommandStepper("1OR?", 0.01);
+            this->homeStepper();
         }
         else if(this->current_Stepper_Command == "Home controller")
         {
-            emit this->executeCommandStepper("1OR?", 0);
+            //emit this->executeCommandStepper("1OR?", 0);
+            this->homeStepper();
         }
         else if(this->current_Stepper_Command == "Get current position")
         {
@@ -222,7 +225,7 @@ void MainWindow::replot()
 
     MainWindow::Curve.setPen(MainWindow::pen);
     ui->resultPlot->setAxisTitle(QwtPlot::yLeft, "");
-    ui->resultPlot->setAxisTitle(QwtPlot::xBottom, "Wavelength [nm]");
+    ui->resultPlot->setAxisTitle(QwtPlot::xBottom, "Position [cm]");
     QVector<double> x;
     QVector<double> y;
     //For debug:
@@ -249,25 +252,51 @@ void MainWindow::replot()
         qDebug() << "Data size: " << this->dispValues.size();
 }
 
+void MainWindow::homeStepper()
+{
+    this->getEstimatedMovementTime(this->current_Stepper_Position);
+    QThread::msleep(100);
+    this->current_Stepper_Position = 0;
+    emit this->executeCommandStepper("1OR?", 0);
+    QThread::sleep(this->movementTime);
+
+}
+
 void MainWindow::on_startScan_clicked()
 {
 
     //Determine time to target
+    this->current_Measurement++;
     this->movementTime = 0;
+    this->dispValues.clear();
     this->getEstimatedMovementTime(fabs(this->current_Stepper_Position-this->stepper_min_limit));
+    qDebug() << "Movement time for distance " << this->current_Stepper_Position-this->stepper_min_limit << " is: " << this->movementTime;
     QThread::msleep(100);
-    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/1000.0;//1000 steps
+    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/500.0;//100 steps
     if(this->movementTime != 0)
     {
+        this->homeStepper();
+        qDebug() << "Waiting till home in automat!";
+        QThread::sleep(3);
+        this->getEstimatedMovementTime(fabs(this->current_Stepper_Position-this->stepper_min_limit));
+        QThread::msleep(100);
         this->moveStepperToAbsPosition(this->stepper_min_limit);
-        QThread::sleep(this->movementTime);
+        QThread::sleep((this->movementTime));
     }
     else
     {
+        //this->homeStepper();
+        qDebug() << "Waiting till home!";
+        QThread::sleep(3);
         this->moveStepperToAbsPosition(this->stepper_min_limit);
         qDebug() << "Using stepsize of " << this->step_size;
         qDebug() << "Please wait for movement stop and continue with the other button!";
+        this->getEstimatedMovementTime(this->step_size);
+        this->moveStepperToAbsPosition(this->stepper_min_limit);
+        QThread::sleep(3);
+        return;
     }
+
     this->getEstimatedMovementTime(this->step_size);
     this->on_MovStopped_clicked();
     ui->startScan->hide();
@@ -314,19 +343,27 @@ void MainWindow::moveStepperToRelPosition(double pos)
 void MainWindow::getCurValue(double val)
 {
     //this->getMaxValue(val);
+    qDebug() << "Got new value!";
+    QThread::msleep(100);
     this->dispValues.push_back(qMakePair(this->current_Stepper_Position, val));
     if(this->current_Stepper_Position + this->step_size < this->stepper_max_limit)
     {
         this->moveStepperToAbsPosition(this->current_Stepper_Position + this->step_size);
-        QThread::msleep(1.1*this->movementTime);
+        qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
+        QThread::sleep(this->movementTime);
         this->curStep++;
         this->current_Stepper_Position += this->step_size;
-        qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
+
         this->getNewValue();
     }
     else
     {
+
+        this->write_unformatted_file(this->dispValues, QString::number(this->current_Measurement));
         qDebug() << "Scan finished!";
+        this->moveStepperToAbsPosition(this->stepper_min_limit);
+        this->step_size = 0;
+        this->curStep = 0;
         this->replot();
     }
 }
@@ -347,6 +384,24 @@ void MainWindow::write_unformatted_file(const QVector<QPair<int, QPair<double, d
 
     file.close();
 }
+
+void MainWindow::write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName)
+{
+    fileName += ".txt";
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly)) {
+        qDebug() << file.errorString();
+        return;
+    }
+    QTextStream out(&file);
+    for(int i = 0; i < Data.size(); i++)
+    {
+        out << Data[i].first << '\t' << Data[i].second << '\n';
+    }
+
+    file.close();
+}
+
 
 
 void MainWindow::init_scan()

@@ -48,8 +48,12 @@ private:
 
     int current_Mono_Position;
 
-    int stepper_min_limit = 3;
-    int stepper_max_limit = 20;
+    int current_Measurement;
+
+    int stepper_min_limit = 9;
+    int stepper_max_limit = 11;
+
+    void write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName);
 
     double current_Stepper_Position;
 
@@ -87,6 +91,8 @@ private:
     void moveStepperToAbsPosition(double pos);
 
     void moveStepperToRelPosition(double pos);
+
+    void homeStepper(void);
 
     void getEstimatedMovementTime(double relPos);
 
