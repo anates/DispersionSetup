@@ -41,6 +41,10 @@ MainWindow::~MainWindow()
         delete this->stepper;
     if(this->logDevice != NULL)
         delete this->logDevice;
+    if(this->mono != NULL)
+        delete this->mono;
+    if(this->stepp != NULL)
+        delete this->stepp;
     delete ui;
 }
 
@@ -48,9 +52,13 @@ void MainWindow::on_connectMono_clicked()
 {
     QList<QSerialPortInfo> list;
     list = QSerialPortInfo::availablePorts();
-    this->monochromator = new serial_controller(list[ui->mono_Connections->currentIndex()].portName(), 1000, 9600, 1, false, false, false, true);
-    connect(this->monochromator, &serial_controller::response, this, &MainWindow::Received_Mono_Data);
-    connect(this, &MainWindow::executeCommandMono, this->monochromator, &serial_controller::transaction);
+//    this->monochromator = new serial_controller(list[ui->mono_Connections->currentIndex()].portName(), 1000, 9600, 1, false, false, false, true);
+//    connect(this->monochromator, &serial_controller::response, this, &MainWindow::Received_Mono_Data);
+//    connect(this, &MainWindow::executeCommandMono, this->monochromator, &serial_controller::transaction);
+    this->mono = new monoChrom(list[ui->mono_Connections->currentIndex()].portName());
+    connect(this, &MainWindow::resetMono, this->mono, &monoChrom::resetMono);
+    connect(this, &MainWindow::moveToWL, this->mono, &monoChrom::moveMonoToWL);
+    connect(this, &MainWindow::getCurrentPos, this->mono, &monoChrom::getCurrentWL);
     QList<QString> initCommands;
     initCommands.append("Initialize Monochromator");
     initCommands.append("Goto position");
@@ -65,9 +73,13 @@ void MainWindow::on_connect_stepper_clicked()
 {
     QList<QSerialPortInfo> list;
     list = QSerialPortInfo::availablePorts();
-    this->stepper = new serial_controller(list[ui->stepper_connections->currentIndex()].portName(), 1000, 57600, 1, false, false, false, false);
-    connect(this->stepper, &serial_controller::response, this, &MainWindow::Received_Stepper_Data);
-    connect(this, &MainWindow::executeCommandStepper, this->stepper, &serial_controller::transaction);
+//    this->stepper = new serial_controller(list[ui->stepper_connections->currentIndex()].portName(), 1000, 57600, 1, false, false, false, false);
+//    connect(this->stepper, &serial_controller::response, this, &MainWindow::Received_Stepper_Data);
+//    connect(this, &MainWindow::executeCommandStepper, this->stepper, &serial_controller::transaction);
+    this->stepp = new stepperM(list[ui->stepper_connections->currentIndex()].portName());
+    connect(this, &MainWindow::AbsStepper, this->stepp, &stepperM::moveAbs);
+    connect(this, &MainWindow::RelStepper, this->stepp, &stepperM::moveRel);
+    connect(this, &MainWindow::homeMirror, this->stepp, &stepperM::home);
     QList<QString> initCommand;
     initCommand.append("Initialize stepper motor controller");
     initCommand.append("Home controller");
@@ -88,7 +100,8 @@ void MainWindow::on_Send_Data_Mono_clicked()
     if(this->monochromator != NULL)
     {
         if(this->current_Mono_Command == "Initialize Monochromator")
-            emit this->executeCommandMono("FFFFFF", 0);
+            //emit this->executeCommandMono("FFFFFF", 0);
+            qDebug() << "Debug pos";
         else if(this->current_Mono_Command == "Goto position")
         {
             this->moveMonoToPosition(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
@@ -96,7 +109,7 @@ void MainWindow::on_Send_Data_Mono_clicked()
         else if(this->current_Mono_Command == "Get current position")
         {
             qDebug() << "3800";
-            emit this->executeCommandMono("3800", 0);
+            //emit this->executeCommandMono("3800", 0);
         }
         else
             qDebug() << "Unknown mono command";
@@ -123,17 +136,30 @@ void MainWindow::on_Send_Data_Stepper_clicked()
         }
         else if(this->current_Stepper_Command == "Get current position")
         {
-            emit this->executeCommandStepper("1TP?", 0);
+            this->current_Stepper_Position = this->stepp->getCurPos();
         }
         else if(this->current_Stepper_Command == "Move absolute")
         {
             if(ui->Stepper_Value_1->text().isEmpty() == false)
-                this->moveStepperToAbsPosition(ui->Stepper_Value_1->text().toDouble());
+            {
+                bool res = emit this->AbsStepper(ui->Stepper_Value_1->text().toDouble());
+                if(res == true)
+                    qDebug() << "Success!";
+                else
+                    qDebug() << "Failure!";
+            }
+
         }
         else if(this->current_Stepper_Command == "Move relative")
         {
             if(ui->Stepper_Value_1->text().isEmpty() == false)
-                this->moveStepperToRelPosition(ui->Stepper_Value_1->text().toDouble());
+            {
+                bool res = emit this->RelStepper(ui->Stepper_Value_1->text().toDouble());
+                if(res == true)
+                    qDebug() << "Success!";
+                else
+                    qDebug() << "Failure!";
+            }
         }
         else if(this->current_Stepper_Command == "Get movement time")
         {
@@ -148,7 +174,7 @@ void MainWindow::on_Send_Data_Stepper_clicked()
 
 void MainWindow::getEstimatedMovementTime(double relPos)
 {
-    emit this->executeCommandStepper("1PT"+QString::number(relPos), 0);
+    //emit this->executeCommandStepper("1PT"+QString::number(relPos), 0);
 }
 
 void MainWindow::Received_Mono_Data(QString &data)
@@ -254,11 +280,12 @@ void MainWindow::replot()
 
 void MainWindow::homeStepper()
 {
-    this->getEstimatedMovementTime(this->current_Stepper_Position);
-    QThread::msleep(100);
-    this->current_Stepper_Position = 0;
-    emit this->executeCommandStepper("1OR?", 0);
-    QThread::sleep(this->movementTime);
+//    this->getEstimatedMovementTime(this->current_Stepper_Position);
+//    QThread::msleep(100);
+//    this->current_Stepper_Position = 0;
+//    emit this->executeCommandStepper("1OR?", 0);
+//    QThread::sleep(this->movementTime);
+    emit this->homeMirror();
 
 }
 
@@ -304,40 +331,43 @@ void MainWindow::on_startScan_clicked()
 
 void MainWindow::moveMonoToPosition(int pos)
 {
-    int value;
-    if(pos == 0 || pos == this->current_Mono_Position)
-        value = 0;
-    else
-        value = pos;
-    QString wavelength;
-    this->current_Mono_Position = value;
-    if(QString::number((qlonglong)value, 16).length() == 3)
-        wavelength = "0" + QString::number((qlonglong)value, 16);
-    else
-        wavelength = QString::number((qlonglong)value, 16);
-    emit this->executeCommandMono("10" + wavelength, 0);
+//    int value;
+//    if(pos == 0 || pos == this->current_Mono_Position)
+//        value = 0;
+//    else
+//        value = pos;
+//    QString wavelength;
+//    this->current_Mono_Position = value;
+//    if(QString::number((qlonglong)value, 16).length() == 3)
+//        wavelength = "0" + QString::number((qlonglong)value, 16);
+//    else
+//        wavelength = QString::number((qlonglong)value, 16);
+//    //emit this->executeCommandMono("10" + wavelength, 0);
+    emit this->moveToWL(pos);
 }
 
 void MainWindow::moveStepperToAbsPosition(double pos)
 {
-    double newPosition = 0;
-    newPosition = pos;
-    if((newPosition >= this->stepper_min_limit) && (newPosition <= this->stepper_max_limit))
-    {
-        emit this->executeCommandStepper("1PA" + QString::number(newPosition), 0);
-        this->current_Stepper_Position = newPosition;
-    }
+//    double newPosition = 0;
+//    newPosition = pos;
+//    if((newPosition >= this->stepper_min_limit) && (newPosition <= this->stepper_max_limit))
+//    {
+//        //emit this->executeCommandStepper("1PA" + QString::number(newPosition), 0);
+//        this->current_Stepper_Position = newPosition;
+//    }
+    emit this->AbsStepper(pos);
 }
 
 void MainWindow::moveStepperToRelPosition(double pos)
 {
-    double newPosition = 0;
-    newPosition = pos;
-    if(this->current_Stepper_Position+newPosition <= this->stepper_max_limit && this->current_Stepper_Position + newPosition >= this->stepper_min_limit)
-    {
-        this->current_Stepper_Position = newPosition;
-        emit this->executeCommandStepper("1PR" + QString::number(newPosition), 0);
-    }
+//    double newPosition = 0;
+//    newPosition = pos;
+//    if(this->current_Stepper_Position+newPosition <= this->stepper_max_limit && this->current_Stepper_Position + newPosition >= this->stepper_min_limit)
+//    {
+//        this->current_Stepper_Position = newPosition;
+//        //emit this->executeCommandStepper("1PR" + QString::number(newPosition), 0);
+//    }
+    emit this->RelStepper(pos);
 }
 
 void MainWindow::getCurValue(double val)

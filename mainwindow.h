@@ -15,6 +15,8 @@
 #include "serial_controller.h"
 #include "add_functions.h"
 #include "../Test_Audio_processing/audioin.h"
+#include "monochrom.h"
+#include "stepperm.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,10 +31,20 @@ public:
     ~MainWindow();
 
     serial_controller *stepper = NULL, *monochromator = NULL;
+    stepperM *stepp = NULL;
+    monoChrom *mono = NULL;
 signals:
-    void executeCommandStepper(QString command, double delay);
+    //void executeCommandStepper(QString command, double delay);
 
-    void executeCommandMono(QString command, double delay);
+    //void executeCommandMono(QString command, double delay);
+    //Monosignals
+    bool moveToWL(int WL);
+    bool resetMono(void);
+    void getCurrentPos(void);
+    //Steppersignals
+    bool homeMirror();
+    bool AbsStepper(double newPos);
+    bool RelStepper(double newPos);
 
     void getNewValue(void);
 
