@@ -45,6 +45,7 @@ signals:
     bool homeMirror();
     bool AbsStepper(double newPos);
     bool RelStepper(double newPos);
+    void getMovementTime(double pos);
 
     void getNewValue(void);
 
@@ -58,6 +59,9 @@ private:
     QString mono_response;
     QString stepper_response;
 
+    bool multiAqu = false;
+    bool scanRun = false;
+
     int current_Mono_Position;
 
     int current_Measurement;
@@ -66,6 +70,8 @@ private:
     int stepper_max_limit = 11;
 
     void write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName);
+
+    void ScanMovementStopped(void);
 
     double current_Stepper_Position;
 
@@ -83,9 +89,13 @@ private:
 
     double curAmplitude = 0;
 
+    QString fileName = "";
+
     int num_steps = 100;
     double step_size = 0;
     int curStep = 0;
+
+    int wlSteps = 0;
 
     QVector<double> curScanVals;
     QVector<QPair<int, QPair<double, double> > > DispResults;
@@ -107,6 +117,8 @@ private:
     void homeStepper(void);
 
     void getEstimatedMovementTime(double relPos);
+
+    void doFullScan(void);
 
 private slots:
     void on_connectMono_clicked();
@@ -133,6 +145,10 @@ public slots:
     void Received_Mono_Data(QString &data);
 
     void getCurValue(double val);
+
+    void CurPosUpdate(double pos);
+
+    void movementTimeUpdate(double Time);
 
 private:
     Ui::MainWindow *ui;

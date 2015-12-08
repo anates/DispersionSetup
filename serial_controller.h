@@ -83,7 +83,7 @@ public slots:
     void read_data(void);
 signals:
     void newTransaction(const QString &request, double delay);
-    void response(QString &s);
+    void response(QString s);
     void error(const QString &s);
     void timeout(const QString &s);
     void CountValue(double val);

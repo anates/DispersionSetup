@@ -63,12 +63,13 @@ monoChrom::monoChrom(QString port, QObject *parent) : QObject(parent)
     connect(this, &monoChrom::getCurrentWL, newMonoChrom, &monoChromworker::getCurrentWL);
     connect(newMonoChrom, &monoChromworker::gotNewData, this, &monoChrom::gotNewData);
     connect(newMonoChrom, &monoChromworker::currentWLVal, this, &monoChrom::setCurrentWL);
-
+    workerThread.start();
 }
 
 monoChrom::~monoChrom()
 {
-
+    this->workerThread.quit();
+    this->workerThread.wait();
 }
 
 bool monoChrom::resetMono()

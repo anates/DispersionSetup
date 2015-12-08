@@ -12,11 +12,8 @@ class stepperMworker : public QObject
 private:
     serial_controller *stepper = NULL;
 
-
-    void getMovementTime(double newPos);
-
-
     QString response;
+    movementData data;
     bool movementTimeCheck = false;
     double estimated_movement_time = 0;
     double curPos = 0;
@@ -26,12 +23,18 @@ public:
 signals:
     void executeCommand(QString, int);
     void updatePosition(double);
+    void updateMovementTime(double);
+    void movementFinished(void);
 public slots:
+    void getMovementTime(double newPos);
+    bool waitMovement(double distance);
     void newData(QString data);
     void moveAbsolute(double pos);
     void moveRelative(double pos);
     void home(void);
-    void move(double pos, bool abs);
+    bool getCurPos(void);
+    void prepareMovement(movementData data);
+    void move(void);
 
 };
 
@@ -48,17 +51,27 @@ public:
     explicit stepperM(QString port, QObject *parent = 0);
     ~stepperM();
 
-    double getCurPos(void);
+    double getCurPosVal(void);
 
 signals:
     void AbsMove(double);
     void RelMove(double);
     void homeMove();
+    bool WhereAmI(void);
+    void curPosUpdate(double);
+    void updateEstTime(double);
+    void estMovTime(double);
+    void move(movementData data);
+    void movementFinished(void);
 public slots:
+    void getEstimatedMovementTime(double pos);
     bool moveAbs(double newPos);
     bool moveRel(double newPos);
     bool home(void);
+    bool getCurPos(void);
     void updatePosition(double newPos);
+    void updateTime(double Time);
+    void StpMovFinished(void);
 };
 
 #endif // STEPPERM_H

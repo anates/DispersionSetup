@@ -7,6 +7,15 @@
 
 void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
 
+
+struct movementData{
+    int moveDir = 0;
+    double dist = 0;
+    double waitingTime = 0;
+    bool toMove = false;
+};
+
+
 struct serialPortInfos{
     QString portName;
     int waitTimeout;
