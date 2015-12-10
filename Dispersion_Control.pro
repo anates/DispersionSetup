@@ -16,7 +16,7 @@ SOURCES += main.cpp\
         mainwindow.cpp\
         serial_controller.cpp \
         add_functions.cpp \
-        ../Test_Audio_processing/audioin.cpp \
+        audioin.cpp \
     monochrom.cpp \
     stepperm.cpp \
     audio_scanner.cpp \
@@ -25,7 +25,7 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h\
             serial_controller.h \
             add_functions.h \
-            ../Test_Audio_processing/audioin.h \
+            audioin.h \
     monochrom.h \
     stepperm.h \
     audio_scanner.h \

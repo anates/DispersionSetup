@@ -32,5 +32,6 @@ void MainWindow::on_LogThis_clicked()
 
 void MainWindow::newMaxValue(double val)
 {
-    ui->MaxVal->setText(QString::number(val));
+    //ui->MaxVal->setText(QString::number(val));
+    qDebug() << "MaxVal is: " << val;
 }
