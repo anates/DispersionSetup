@@ -18,14 +18,18 @@ SOURCES += main.cpp\
         add_functions.cpp \
         ../Test_Audio_processing/audioin.cpp \
     monochrom.cpp \
-    stepperm.cpp
+    stepperm.cpp \
+    audio_scanner.cpp \
+    data_cleaner.cpp
 
 HEADERS  += mainwindow.h\
             serial_controller.h \
             add_functions.h \
             ../Test_Audio_processing/audioin.h \
     monochrom.h \
-    stepperm.h
+    stepperm.h \
+    audio_scanner.h \
+    data_cleaner.h
 
 QMAKE_CXXFLAGS += -std=c++11 -std=gnu++0x -O3 -fopenmp
 

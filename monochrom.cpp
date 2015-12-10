@@ -20,7 +20,7 @@ void monoChromworker::newData(QString data)
 
 bool monoChromworker::moveToWL(int WL)
 {
-
+    qDebug() << "Moving to WL: " << WL;
     int value;
     if(WL == 0 || WL == this->currentWL)
         value = 0;

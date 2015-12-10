@@ -17,6 +17,7 @@
 #include "../Test_Audio_processing/audioin.h"
 #include "monochrom.h"
 #include "stepperm.h"
+#include "audio_scanner.h"
 
 namespace Ui {
 class MainWindow;
@@ -46,10 +47,12 @@ signals:
     bool AbsStepper(double newPos);
     bool RelStepper(double newPos);
     void getMovementTime(double pos);
-
+    //AudioSignals
     void getNewValue(void);
 
     void maxValue(double val);
+    void init_audio(double);
+    void test_audio(void);
 
 private:
     QString current_Stepper_Command;
@@ -82,8 +85,9 @@ private:
     QVector<QPair<double, double> > dispValues;
     QMap<double, double> plotData;
 
-    AudioIn *logDevice = NULL;
-    PaStreamParameters params;
+    audio_scanner *scanner = NULL;
+//    AudioIn *logDevice = NULL;
+//    PaStreamParameters params;
 
     double movementTime = 0;
 
@@ -138,6 +142,8 @@ private slots:
     void on_MovStopped_clicked();
 
     void on_FullScan_clicked();
+
+    void on_num_steps_textEdited(const QString &arg1);
 
 public slots:
     void Received_Stepper_Data(QString &data);

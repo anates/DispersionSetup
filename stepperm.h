@@ -3,8 +3,11 @@
 
 #include <QObject>
 #include <QThread>
+#include <QRegExp>
 #include "serial_controller.h"
 #include "add_functions.h"
+#include "data_cleaner.h"
+
 
 class stepperMworker : public QObject
 {
@@ -17,6 +20,7 @@ private:
     bool movementTimeCheck = false;
     double estimated_movement_time = 0;
     double curPos = 0;
+    data_cleaner *cleaner = NULL;
 public:
     explicit stepperMworker(serialPortInfos data, QObject *parent = 0);
     ~stepperMworker();
