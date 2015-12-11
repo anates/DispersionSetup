@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>827</height>
+    <height>829</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -176,7 +176,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Start wave length</string>
+             <string>Start wave length [nm]</string>
             </property>
            </widget>
           </item>
@@ -186,7 +186,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Stop wave length</string>
+             <string>Stop wave length [nm]</string>
             </property>
            </widget>
           </item>
@@ -196,7 +196,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_13">
             <property name="text">
-             <string>Min. position</string>
+             <string>Min. stepper position [mm]</string>
             </property>
            </widget>
           </item>
@@ -206,7 +206,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="label_14">
             <property name="text">
-             <string>Max. position</string>
+             <string>Max. stepper position [mm]</string>
             </property>
            </widget>
           </item>
