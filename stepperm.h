@@ -8,6 +8,8 @@
 #include "add_functions.h"
 #include "data_cleaner.h"
 
+#define TIME_OUT 5000
+
 
 class stepperMworker : public QObject
 {
@@ -21,6 +23,11 @@ private:
     double estimated_movement_time = 0;
     double curPos = 0;
     data_cleaner *cleaner = NULL;
+    int timerID;
+
+    void start_timer(void);
+protected:
+    void timerEvent(QTimerEvent *event);
 public:
     explicit stepperMworker(serialPortInfos data, QObject *parent = 0);
     ~stepperMworker();
@@ -29,6 +36,9 @@ signals:
     void updatePosition(double);
     void updateMovementTime(double);
     void movementFinished(void);
+
+    //Internal
+    void ReadingError(QString);
 public slots:
     void getMovementTime(double newPos);
     bool waitMovement(double distance);

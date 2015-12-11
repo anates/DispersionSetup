@@ -323,7 +323,8 @@ void MainWindow::on_startScan_clicked()
     this->stepper_min_limit = (ui->minPos->text().isEmpty()?min:(ui->minPos->text().toDouble() <= min || ui->minPos->text().toDouble() >= max)?min:ui->minPos->text().toDouble());
     this->stepper_max_limit = (ui->maxPos->text().isEmpty()?max:(ui->maxPos->text().toDouble() >= max || ui->maxPos->text().toDouble() <= min)?max:ui->maxPos->text().toDouble());
     int steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
-    this->step_size = (double)(max-min)/steps;//100 steps
+    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/steps;//100 steps
+    ui->size_steps->setText(QString::number(this->step_size));
 //    if(this->movementTime != 0)
 //    {
 //        this->homeStepper();
@@ -544,5 +545,7 @@ void MainWindow::doFullScan()
     {
         this->multiAqu = false;
         this->write_unformatted_file(this->DispResults);
+        this->wlSteps = 0;
+        ui->startScan->show();
     }
 }

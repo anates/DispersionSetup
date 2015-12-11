@@ -7,6 +7,7 @@ stepperMworker::stepperMworker(serialPortInfos data, QObject *parent) : QObject(
     //connect(this->stepper, &serial_controller::response, this->cleaner, &data_cleaner::newData);
     connect(this, &stepperMworker::executeCommand, this->stepper, &serial_controller::transaction);
     connect(this->stepper, &serial_controller::response, this, &stepperMworker::newData);
+    connect(this, &stepperMworker::ReadingError, this, &stepperMworker::newData);
     //connect(this->cleaner, &data_cleaner::resultData, this, &stepperMworker::newData);
 }
 
@@ -19,7 +20,21 @@ void stepperMworker::newData(QString data)
 {
     this->response.clear();
     this->response = data;
+    qDebug() << "Timer-ID is: " << this->timerID;
+    killTimer(this->timerID);
     QString last = QString("\x00D\x00A");
+    if(this->response == QString::number(-1))
+    {
+        //Due to comm bugs with the device, only as preliminary fix!
+        this->estimated_movement_time = 5;
+        emit this->updateMovementTime(this->estimated_movement_time);
+        this->data.waitingTime = this->estimated_movement_time;
+        qDebug() << "New response time is: " << this->estimated_movement_time;
+        this->movementTimeCheck = false;
+        if(this->data.toMove == true)
+            this->move();
+        return;
+    }
     if(this->response.right(2) != last)
     {
         qDebug() << "Response is: " << this->response;
@@ -56,13 +71,13 @@ void stepperMworker::newData(QString data)
         if(this->data.toMove == true)
             this->move();
     }
-
 }
 
 bool stepperMworker::waitMovement(double distance)
 {
     this->movementTimeCheck = true;
     emit this->executeCommand("1PT"+QString::number(distance), 0);
+    this->start_timer();
     int i = 0;
     qDebug() << "Waiting for suitable answer of moving time!";
     while(i < 1000 && this->movementTimeCheck == true)
@@ -90,6 +105,7 @@ void stepperMworker::moveAbsolute(double pos)
 //        sleepTime = 2;
 //    }
     emit this->executeCommand("1PA" + QString::number(pos), 0);
+    this->start_timer();
 //    QThread::sleep(sleepTime);
     this->curPos = pos;
     emit this->updatePosition(pos);
@@ -104,6 +120,7 @@ void stepperMworker::moveRelative(double pos)
 //    else
 //        sleepTime = 2;
     emit this->executeCommand("1PR" + QString::number(pos), 0);
+    this->start_timer();
 //    QThread::sleep(sleepTime);
 //    this->curPos += pos;
     emit this->updatePosition(this->curPos += pos);
@@ -113,6 +130,7 @@ void stepperMworker::moveRelative(double pos)
 bool stepperMworker::getCurPos()
 {
     emit this->executeCommand("1TP?", 0);
+    this->start_timer();
     return true;
 }
 
@@ -121,6 +139,7 @@ void stepperMworker::home()
 {
     qDebug() << "Home now!";
     emit this->executeCommand("1OR?",0);
+    this->start_timer();
     QThread::sleep(5);
 }
 
@@ -129,6 +148,7 @@ void stepperMworker::getMovementTime(double newPos)
     this->movementTimeCheck = true;
     qDebug() << "Looking for movementTime!";
     emit this->executeCommand("1PT"+QString::number(newPos), 0);
+    this->start_timer();
 }
 
 void stepperMworker::prepareMovement(movementData data)
@@ -140,6 +160,11 @@ void stepperMworker::prepareMovement(movementData data)
         this->newData("1PT0\x00D\x00A");
     else
         this->getMovementTime(dist);
+}
+
+void stepperMworker::start_timer()
+{
+    this->timerID = startTimer(TIME_OUT);
 }
 
 void stepperMworker::move(void)
@@ -160,7 +185,11 @@ void stepperMworker::move(void)
     emit this->movementFinished();
 }
 
-
+void stepperMworker::timerEvent(QTimerEvent *event)
+{
+    killTimer(this->timerID);
+    emit this->ReadingError(QString::number(-1));
+}
 
 
 
