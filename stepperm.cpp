@@ -4,9 +4,10 @@ stepperMworker::stepperMworker(serialPortInfos data, QObject *parent) : QObject(
 {
     this->stepper = new serial_controller(data.portName, 1000, 57600, 1, false, false, false, false);
     this->cleaner = new data_cleaner();
-    connect(this->stepper, &serial_controller::response, this->cleaner, &data_cleaner::newData);
+    //connect(this->stepper, &serial_controller::response, this->cleaner, &data_cleaner::newData);
     connect(this, &stepperMworker::executeCommand, this->stepper, &serial_controller::transaction);
-    connect(this->cleaner, &data_cleaner::newCleanData, this, &stepperMworker::newData);
+    connect(this->stepper, &serial_controller::response, this, &stepperMworker::newData);
+    //connect(this->cleaner, &data_cleaner::resultData, this, &stepperMworker::newData);
 }
 
 stepperMworker::~stepperMworker()
@@ -19,11 +20,11 @@ void stepperMworker::newData(QString data)
     this->response.clear();
     this->response = data;
     QString last = QString("\x00D\x00A");
-//    if(this->response.right(2) != last)
-//    {
-//        qDebug() << "Response is: " << this->response;
-//        return;
-//    }
+    if(this->response.right(2) != last)
+    {
+        qDebug() << "Response is: " << this->response;
+        return;
+    }
     qDebug() << "Response is: " << this->response;
     data.clear();
     if(this->response.contains("PT"))
