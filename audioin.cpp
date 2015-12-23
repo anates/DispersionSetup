@@ -102,7 +102,8 @@ void AudioIn::testAudioIn()
                   &data );
     if( this->err != paNoError )
     {
-        qDebug() << "Error: " << Pa_GetErrorText(this->err);
+        //qDebug() << "Error: " << Pa_GetErrorText(this->err);
+        debug_out("Error: " + QString(Pa_GetErrorText(this->err)));
         return;
     }
     this->err = Pa_CloseStream(this->stream);
@@ -110,8 +111,10 @@ void AudioIn::testAudioIn()
 
 void AudioIn::maxAmplitude()
 {
-    qDebug() << "Recording now!";
-    qDebug() << "Data index 0: " << this->data.frameIndex;
+    //qDebug() << "Recording now!";
+    debug_out("Recording now!");
+    //qDebug() << "Data index 0: " << this->data.frameIndex;
+    debug_out("Data index 0: " + QString::number(this->data.frameIndex));
     this->err = Pa_OpenStream(
                   &(this->stream),
                   &(this->InputParams),
@@ -131,7 +134,8 @@ void AudioIn::maxAmplitude()
     }
     if( this->err < 0 )
     {
-        qDebug() << "Error: " << Pa_GetErrorText(this->err);
+        //qDebug() << "Error: " << Pa_GetErrorText(this->err);
+        debug_out("Error: " + QString(Pa_GetErrorText(this->err)));
         return;
     }
 
@@ -162,8 +166,10 @@ void AudioIn::maxAmplitude()
 
     average = average / (double)numSamples;
 
-    qDebug() << "sample max amplitude = " << QString::number(max) << "\n";
-    qDebug() << "sample average = " << QString::number(average) << "\n";
+    //qDebug() << "sample max amplitude = " << QString::number(max) << "\n";
+    //qDebug() << "sample average = " << QString::number(average) << "\n";
+    debug_out("Sample max amplitude = " + QString::number(max));
+    debug_out("Sample average = " + QString::number(average));
     //Clean up
     if(this->data.recordedSamples != NULL)
         memset(this->data.recordedSamples, 0, this->numBytes);

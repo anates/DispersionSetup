@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QThread>
 #include <QDebug>
+#include "add_functions.h"
 #include "../Test_Audio_processing/audioin.h"
 
 class audio_worker : public QObject

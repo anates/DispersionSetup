@@ -25,7 +25,8 @@ void data_worker::startCleaning()
             this->buffer->buffer.pop_front();
             this->buffer->numUsedBytes--;
             this->buffer->lastPos--;
-            qDebug() << "Buffer size: " << this->buffer->buffer.size();
+            //qDebug() << "Buffer size: " << this->buffer->buffer.size();
+            debug_out("Buffer size: " + QString::number(this->buffer->buffer.size()));
 
         }
         if(this->buffer->buffer.size() == 0)

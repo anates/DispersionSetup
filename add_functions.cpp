@@ -7,3 +7,13 @@ void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, dou
         outdata[indata[i].first] = indata[i].second;
     }
 }
+
+void debug_out(QString data)
+{
+    QFile file("logfile.txt");
+    file.open(QIODevice::Append);
+    QTextStream out(&file);
+    out << '\n' << data << " " << QDateTime::currentMSecsSinceEpoch();
+    file.close();
+    qDebug() << data << " " << QDateTime::currentMSecsSinceEpoch();
+}

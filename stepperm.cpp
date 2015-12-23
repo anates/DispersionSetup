@@ -20,8 +20,13 @@ void stepperMworker::newData(QString data)
 {
     this->response.clear();
     this->response = data;
-    qDebug() << "Timer-ID is: " << this->timerID;
-    killTimer(this->timerID);
+    //qDebug() << "Timer-ID is: " << this->timerID;
+    debug_out("Timer-ID is: " + QString::number(this->timerID));
+    if(this->timerID != 0)
+        killTimer(this->timerID);
+    //qDebug() << "Timerevent is: " << event;
+    //debug_out("Timerevent is: " + QString(event));
+    this->timerID = 0;
     QString last = QString("\x00D\x00A");
     if(this->response == QString::number(-1))
     {
@@ -29,7 +34,8 @@ void stepperMworker::newData(QString data)
         this->estimated_movement_time = 5;
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
-        qDebug() << "New response time is: " << this->estimated_movement_time;
+        //qDebug() << "New response time is: " << this->estimated_movement_time;
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -37,10 +43,12 @@ void stepperMworker::newData(QString data)
     }
     if(this->response.right(2) != last)
     {
-        qDebug() << "Response is: " << this->response;
+        //qDebug() << "Response is: " << this->response;
+        debug_out("Response is: " + this->response);
         return;
     }
-    qDebug() << "Response is: " << this->response;
+    //qDebug() << "Response is: " << this->response;
+    debug_out("Response is: " + this->response);
     data.clear();
     if(this->response.contains("PT"))
     {
@@ -48,7 +56,8 @@ void stepperMworker::newData(QString data)
         this->estimated_movement_time = (response.length() == 2)?response[1].toDouble():0;
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
-        qDebug() << "New response time is: " << this->estimated_movement_time;
+        //qDebug() << "New response time is: " << this->estimated_movement_time;
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -56,7 +65,11 @@ void stepperMworker::newData(QString data)
     else if(this->response.contains("TP"))
     {
         QList<QString> response = this->response.split("TP");
-        qDebug() << "New Position is: " << response;
+        //qDebug() << "New Position is: " << response;
+        QString tmp;
+        for(int i = 0; i < response.size(); i++)
+            tmp += response[i];
+        debug_out("New Position is: " + tmp);
         emit this->updatePosition((response.length() == 2)?response[1].toDouble():-1);
         this->curPos = (response.length() == 2)?response[1].toDouble():this->curPos;
     }
@@ -66,7 +79,8 @@ void stepperMworker::newData(QString data)
         this->estimated_movement_time = 5;
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
-        qDebug() << "New response time is: " << this->estimated_movement_time;
+        //qDebug() << "New response time is: " << this->estimated_movement_time;
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -79,7 +93,8 @@ bool stepperMworker::waitMovement(double distance)
     emit this->executeCommand("1PT"+QString::number(distance), 0);
     this->start_timer();
     int i = 0;
-    qDebug() << "Waiting for suitable answer of moving time!";
+    //qDebug() << "Waiting for suitable answer of moving time!";
+    debug_out("Waiting for suitable answer of moving time!");
     while(i < 1000 && this->movementTimeCheck == true)
     {
         i++;
@@ -137,7 +152,8 @@ bool stepperMworker::getCurPos()
 
 void stepperMworker::home()
 {
-    qDebug() << "Home now!";
+    //qDebug() << "Home now!";
+    debug_out("Home now!");
     emit this->executeCommand("1OR?",0);
     this->start_timer();
     QThread::sleep(5);
@@ -146,7 +162,8 @@ void stepperMworker::home()
 void stepperMworker::getMovementTime(double newPos)
 {
     this->movementTimeCheck = true;
-    qDebug() << "Looking for movementTime!";
+    //qDebug() << "Looking for movementTime!";
+    debug_out("Looking for movementTime!");
     emit this->executeCommand("1PT"+QString::number(newPos), 0);
     this->start_timer();
 }
@@ -176,7 +193,8 @@ void stepperMworker::move(void)
     else
         this->home();
     QThread::sleep(1.1*(this->data.waitingTime));
-    qDebug() << "Finished sleeping the time " << this->data.waitingTime << "s!";
+    //qDebug() << "Finished sleeping the time " << this->data.waitingTime << "s!";
+    debug_out("Finished sleeping the time " + QString::number(this->data.waitingTime) + "s!");
     this->estimated_movement_time = 0;
     this->data.moveDir = 2;
     this->data.dist = 0;
@@ -187,7 +205,11 @@ void stepperMworker::move(void)
 
 void stepperMworker::timerEvent(QTimerEvent *event)
 {
+    if(this->timerID != 0)
     killTimer(this->timerID);
+    //qDebug() << "Timerevent is: " << event;
+    //debug_out("Timerevent is: " + QString(event));
+    this->timerID = 0;
     emit this->ReadingError(QString::number(-1));
 }
 
@@ -236,11 +258,13 @@ void stepperM::updatePosition(double newPos)
     if(newPos != -1)
     {
         this->cur_pos = newPos;
-        qDebug() << "New Position is: " << newPos;
+        //qDebug() << "New Position is: " << newPos;
+        debug_out("New Position is: " + QString::number(newPos));
         emit this->curPosUpdate(newPos);
     }
     else
-        qDebug() << "No new position!";
+        //qDebug() << "No new position!";
+        debug_out("No new position!");
 }
 
 bool stepperM::moveAbs(double newPos)
@@ -250,7 +274,8 @@ bool stepperM::moveAbs(double newPos)
     else
     {
         //emit this->AbsMove(newPos);
-        qDebug() << "Moving abs!";
+        //qDebug() << "Moving abs!";
+        debug_out("Moving abs!");
         movementData data;
         data.toMove = true;
         data.dist = newPos;
@@ -285,7 +310,8 @@ void stepperM::getEstimatedMovementTime(double pos)
 
 bool stepperM::home()
 {
-    qDebug() << "In stepperM: Home";
+    //qDebug() << "In stepperM: Home";
+    debug_out("In stepperM: Home");
     //emit this->homeMove();
     movementData data;
     data.toMove = true;
@@ -293,7 +319,8 @@ bool stepperM::home()
     data.moveDir = 1;
     data.waitingTime = 0;
     emit this->move(data);
-    qDebug() << "Homing now!";
+    //qDebug() << "Homing now!";
+    debug_out("Homing now!");
 //    data.toMove = true;
 //    data.dist = this->min_pos;
 //    data.moveDir = 2;
@@ -303,7 +330,8 @@ bool stepperM::home()
 
 void stepperM::updateTime(double Time)
 {
-    qDebug() << "Est. mov time is: " << Time;
+    //qDebug() << "Est. mov time is: " << Time;
+    debug_out("Est. mov time is: " + QString::number(Time));
     emit this->updateEstTime(Time);
 }
 

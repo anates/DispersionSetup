@@ -66,8 +66,8 @@ private:
 
     int current_Measurement;
 
-    int stepper_min_limit = 9;
-    int stepper_max_limit = 11;
+    int stepper_min_limit = 4;
+    int stepper_max_limit = 15;
 
     void write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName);
 

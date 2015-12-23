@@ -203,45 +203,45 @@
           <item row="2" column="1">
            <widget class="QLineEdit" name="minPos"/>
           </item>
-          <item row="3" column="0">
+          <item row="4" column="0">
            <widget class="QLabel" name="label_14">
             <property name="text">
              <string>Max. stepper position [mm]</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="4" column="1">
            <widget class="QLineEdit" name="maxPos"/>
           </item>
-          <item row="5" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="7" column="1">
            <widget class="QPushButton" name="startScan">
             <property name="text">
              <string>Start measurement</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="9" column="1">
            <widget class="QPushButton" name="MovStopped">
             <property name="text">
              <string>MovementStopped</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
+          <item row="10" column="1">
            <widget class="QPushButton" name="FullScan">
             <property name="text">
              <string>Do full scan</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="6" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QLabel" name="label_16">
@@ -264,6 +264,20 @@
              <widget class="QLineEdit" name="size_steps"/>
             </item>
            </layout>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="min_out_of_range">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="max_out_of_range">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

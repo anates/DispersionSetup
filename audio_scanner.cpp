@@ -5,7 +5,8 @@
 audio_worker::audio_worker(QObject *parent)
 {
     this->logDevice = new AudioIn();
-    qDebug() << QString::number(Pa_Initialize());
+    //qDebug() << QString::number(Pa_Initialize());
+    debug_out(QString::number(Pa_Initialize()));
     this->params.device = Pa_GetDefaultInputDevice();
     this->params.channelCount = 1;
     this->params.sampleFormat = PA_SAMPLE_TYPE;

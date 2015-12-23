@@ -7,6 +7,7 @@
 #include <QtSerialPort/QtSerialPort>
 #include <stdlib.h>
 #include <stdio.h>
+#include "add_functions.h"
 
 class serial_controller_worker: public QObject
 {

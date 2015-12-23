@@ -18,17 +18,20 @@ serial_controller_worker::serial_controller_worker(const QString &portname, int 
     this->serial->setBaudRate(this->baudrate);
     this->serial->setStopBits((this->numStopBits==2)?QSerialPort::TwoStop:QSerialPort::OneStop);
     this->serial->setParity((this->useParity?(this->parity?QSerialPort::OddParity:QSerialPort::EvenParity):QSerialPort::NoParity));
-    qDebug() << "Using " << this->baudrate << " and " << this->useParity << " as parity and " << this->numStopBits << " as stopbits and " << (this->useParity?(this->parity?QSerialPort::OddParity:QSerialPort::EvenParity):QSerialPort::NoParity) << " as parity";
+    //qDebug() << "Using " << this->baudrate << " and " << this->useParity << " as parity and " << this->numStopBits << " as stopbits and " << (this->useParity?(this->parity?QSerialPort::OddParity:QSerialPort::EvenParity):QSerialPort::NoParity) << " as parity";
+    debug_out("Using " + QString::number(this->baudrate) + " and " + QString::number(this->useParity) + " as parity and " + QString::number(this->numStopBits) + " as stopbits and " + QString::number(this->useParity?(this->parity?QSerialPort::OddParity:QSerialPort::EvenParity):QSerialPort::NoParity) + " as parity");
     if (!serial->open(QIODevice::ReadWrite))
     {
         emit error(tr("Can't open %1, error code %2").arg(portName).arg(serial->error()));
-        qDebug() << tr("Can't open %1, error code %2").arg(portName).arg(serial->error());
+        //qDebug() << tr("Can't open %1, error code %2").arg(portName).arg(serial->error());
+        debug_out(tr("Can't open %1, error code %2").arg(portName).arg(serial->error()));
         return;
     }
     else
     {
         emit error(tr("Opened %1").arg(portName));
-        qDebug() << tr("Opened %1").arg(portName);
+        //qDebug() << tr("Opened %1").arg(portName);
+        debug_out(tr("Opened %1").arg(portName));
     }
 }
 
@@ -59,7 +62,8 @@ void serial_controller_worker::read_data()
 void serial_controller_worker::convertStringToHex(const QString &input, QByteArray &output)
 {
     QString d1,d2,d3;
-    qDebug() << "From conversion: " + input;
+    //qDebug() << "From conversion: " + input;
+    debug_out("From conversion: " + input);
     d1.append(input[0]);
     d1.append(input[1]);
     d2.append((input.length() > 2)?input[2]:QChar('0'));
@@ -88,7 +92,8 @@ void serial_controller_worker::transaction(const QString &request, double delay)
     if(this->useHex == false)
     {
         QString request_enter = request + QString("\x00D\x00A");
-        qDebug() << "Converted QString: " << request_enter;
+        //qDebug() << "Converted QString: " << request_enter;
+        debug_out("Converted QString: " + request_enter);
         requestData = request_enter.toLocal8Bit();
     }
     else
@@ -96,9 +101,11 @@ void serial_controller_worker::transaction(const QString &request, double delay)
         this->convertStringToHex(request, requestData);
     }
     QThread::msleep((this->delay_write)*1000);
-    qDebug() << "Writing data: " << requestData;
+    //qDebug() << "Writing data: " << requestData;
+    debug_out("Writing data: " + requestData);
     int status = serial->write(requestData);
-    qDebug() << "Writestatus is: " + QString::number(status);
+    //qDebug() << "Writestatus is: " + QString::number(status);
+    debug_out("Writestatus is: " + QString::number(status));
 }
 
 
@@ -152,7 +159,8 @@ serial_controller::~serial_controller()
 
 void serial_controller::transaction(const QString &request, double delay)
 {
-    qDebug() << "Sent new transaction request " << request << " to worker!";
+    //qDebug() << "Sent new transaction request " << request << " to worker!";
+    debug_out("Sent new transaction request " + request + " to worker!");
     emit this->newTransaction(request, delay);
 //    QByteArray requestData = request.toLocal8Bit();
 //    qDebug() << "Writing data: " << requestData;

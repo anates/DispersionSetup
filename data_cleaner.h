@@ -10,6 +10,7 @@
 #include <QMutex>
 #include <QRegExp>
 #include <QDebug>
+#include "add_functions.h"
 
 #define MAX_LENGTH 1000
 

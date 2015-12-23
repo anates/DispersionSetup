@@ -4,8 +4,14 @@
 #include <QPair>
 #include <QMap>
 #include <QString>
+#include <QDebug>
+#include <QFile>
+#include <QIODevice>
+#include <QDateTime>
 
 void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
+
+void debug_out(QString data);
 
 
 struct movementData{
