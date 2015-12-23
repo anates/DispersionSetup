@@ -509,7 +509,10 @@ void MainWindow::getCurValue(double val)
 
 void MainWindow::write_unformatted_file(const QVector<QPair<int, QPair<double, double> > > &Data/*const QMap<double, double> &Data*/, QString fileName = "DispersionValues")
 {
+    QDir dir;
     fileName += ".txt";
+    fileName = dir.absolutePath() + "/" + fileName;
+    debug_out("Writing into file " + fileName);
     QFile file(fileName);
     if(!file.open(QIODevice::WriteOnly)) {
         debug_out(file.errorString());
@@ -608,7 +611,7 @@ void MainWindow::doFullScan()
         this->moveMonoToPosition(this->current_Mono_Position + this->wlSteps + 1);
         QThread::sleep(1);
         this->wlSteps++;
-        this->fileName = ui->startValue->text() + QString::number(this->wlSteps);
+        this->fileName = QString::number(ui->startValue->text().toInt() + this->wlSteps);
         this->on_startScan_clicked();
     }
     else
