@@ -18,6 +18,10 @@
 #include "monochrom.h"
 #include "stepperm.h"
 
+#define MAX 15
+#define MIN 4
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -62,12 +66,12 @@ private:
     bool multiAqu = false;
     bool scanRun = false;
 
-    int current_Mono_Position;
+    int current_Mono_Position = 0;
 
     int current_Measurement;
 
-    int stepper_min_limit = 4;
-    int stepper_max_limit = 15;
+    int stepper_min_limit = MIN;
+    int stepper_max_limit = MAX;
 
     void write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName);
 
