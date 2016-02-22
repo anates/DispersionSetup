@@ -11,7 +11,7 @@
 
 void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
 
-void debug_out(QString data);
+void debug_out(QString data, int debug_level = 0);
 
 
 struct movementData{

@@ -86,6 +86,7 @@ public slots:
     void updatePosition(double newPos);
     void updateTime(double Time);
     void StpMovFinished(void);
+    //This is a test comment
 };
 
 #endif // STEPPERM_H

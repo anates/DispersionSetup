@@ -145,7 +145,7 @@ void MainWindow::on_Send_Data_Stepper_clicked()
         if(this->current_Stepper_Command == "Initialize stepper motor controller")
         {
             //emit this->executeCommandStepper("1OR?", 0.01);
-            debug_out("Init chosen!");
+            debug_out("Init chosen!", 1);
             //qDebug() << "Init chosen!";
             this->homeStepper();
         }
@@ -382,7 +382,6 @@ void MainWindow::homeStepper()
 
 void MainWindow::on_startScan_clicked()
 {
-
     if(this->stepp == NULL || this->mono == NULL)
     {
         debug_out("One or both of the controllers are not connected, exiting!");
@@ -423,6 +422,7 @@ void MainWindow::on_startScan_clicked()
     int steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
     this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/steps;//100 steps
     ui->size_steps->setText(QString::number(this->step_size));
+    debug_out("Running a short scan from " + QString::number(this->stepper_min_limit) + " to " + QString::number(this->stepper_max_limit) + " with " + QString::number(steps) + " at the wavelength of " + " currently missing!", 1);
 //    if(this->movementTime != 0)
 //    {
 //        this->homeStepper();

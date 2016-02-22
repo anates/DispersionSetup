@@ -21,7 +21,7 @@ void monoChromworker::newData(QString data)
 bool monoChromworker::moveToWL(int WL)
 {
     //qDebug() << "Moving to WL: " << WL;
-    debug_out("Moving to WL: " + QString::number(WL));
+    debug_out("Moving to WL: " + QString::number(WL), 1);
     int value;
     if(WL == 0 || WL == this->currentWL)
         value = 0;
@@ -82,7 +82,7 @@ bool monoChrom::resetMono()
 void monoChrom::gotNewData(QString data)
 {
     //qDebug() << "Data in mono is: " << data;
-    debug_out("Data in Mono is: " + data);
+    debug_out("Data in Mono is: " + data, 1);
 }
 
 bool monoChrom::moveMonoToWL(int WL)

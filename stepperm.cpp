@@ -35,7 +35,7 @@ void stepperMworker::newData(QString data)
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
         //qDebug() << "New response time is: " << this->estimated_movement_time;
-        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time), 1);
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -44,11 +44,11 @@ void stepperMworker::newData(QString data)
     if(this->response.right(2) != last)
     {
         //qDebug() << "Response is: " << this->response;
-        debug_out("Response is: " + this->response);
+        debug_out("Response is: " + this->response, 1);
         return;
     }
     //qDebug() << "Response is: " << this->response;
-    debug_out("Response is: " + this->response);
+    debug_out("Response is: " + this->response, 1);
     data.clear();
     if(this->response.contains("PT"))
     {
@@ -57,7 +57,7 @@ void stepperMworker::newData(QString data)
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
         //qDebug() << "New response time is: " << this->estimated_movement_time;
-        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time), 1);
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -69,7 +69,7 @@ void stepperMworker::newData(QString data)
         QString tmp;
         for(int i = 0; i < response.size(); i++)
             tmp += response[i];
-        debug_out("New Position is: " + tmp);
+        debug_out("New Position is: " + tmp, 1);
         emit this->updatePosition((response.length() == 2)?response[1].toDouble():-1);
         this->curPos = (response.length() == 2)?response[1].toDouble():this->curPos;
     }
@@ -80,7 +80,7 @@ void stepperMworker::newData(QString data)
         emit this->updateMovementTime(this->estimated_movement_time);
         this->data.waitingTime = this->estimated_movement_time;
         //qDebug() << "New response time is: " << this->estimated_movement_time;
-        debug_out("New response time is: " + QString::number(this->estimated_movement_time));
+        debug_out("New response time is: " + QString::number(this->estimated_movement_time), 1);
         this->movementTimeCheck = false;
         if(this->data.toMove == true)
             this->move();
@@ -94,7 +94,7 @@ bool stepperMworker::waitMovement(double distance)
     this->start_timer();
     int i = 0;
     //qDebug() << "Waiting for suitable answer of moving time!";
-    debug_out("Waiting for suitable answer of moving time!");
+    debug_out("Waiting for suitable answer of moving time!", 1);
     while(i < 1000 && this->movementTimeCheck == true)
     {
         i++;
@@ -153,7 +153,7 @@ bool stepperMworker::getCurPos()
 void stepperMworker::home()
 {
     //qDebug() << "Home now!";
-    debug_out("Home now!");
+    debug_out("Home now!", 1);
     emit this->executeCommand("1OR?",0);
     this->start_timer();
     QThread::sleep(5);
@@ -163,7 +163,7 @@ void stepperMworker::getMovementTime(double newPos)
 {
     this->movementTimeCheck = true;
     //qDebug() << "Looking for movementTime!";
-    debug_out("Looking for movementTime!");
+    debug_out("Looking for movementTime!", 1);
     emit this->executeCommand("1PT"+QString::number(newPos), 0);
     this->start_timer();
 }
@@ -194,7 +194,7 @@ void stepperMworker::move(void)
         this->home();
     QThread::sleep(1.1*(this->data.waitingTime));
     //qDebug() << "Finished sleeping the time " << this->data.waitingTime << "s!";
-    debug_out("Finished sleeping the time " + QString::number(this->data.waitingTime) + "s!");
+    debug_out("Finished sleeping the time " + QString::number(this->data.waitingTime) + "s!", 1);
     this->estimated_movement_time = 0;
     this->data.moveDir = 2;
     this->data.dist = 0;
@@ -259,12 +259,12 @@ void stepperM::updatePosition(double newPos)
     {
         this->cur_pos = newPos;
         //qDebug() << "New Position is: " << newPos;
-        debug_out("New Position is: " + QString::number(newPos));
+        debug_out("New Position is: " + QString::number(newPos), 1);
         emit this->curPosUpdate(newPos);
     }
     else
         //qDebug() << "No new position!";
-        debug_out("No new position!");
+        debug_out("No new position!", 1);
 }
 
 bool stepperM::moveAbs(double newPos)
@@ -275,7 +275,7 @@ bool stepperM::moveAbs(double newPos)
     {
         //emit this->AbsMove(newPos);
         //qDebug() << "Moving abs!";
-        debug_out("Moving abs!");
+        debug_out("Moving abs: " + QString::number(newPos) + "!");
         movementData data;
         data.toMove = true;
         data.dist = newPos;
@@ -311,7 +311,7 @@ void stepperM::getEstimatedMovementTime(double pos)
 bool stepperM::home()
 {
     //qDebug() << "In stepperM: Home";
-    debug_out("In stepperM: Home");
+    debug_out("In stepperM: Home", 1);
     //emit this->homeMove();
     movementData data;
     data.toMove = true;
@@ -320,7 +320,7 @@ bool stepperM::home()
     data.waitingTime = 0;
     emit this->move(data);
     //qDebug() << "Homing now!";
-    debug_out("Homing now!");
+    debug_out("Homing now!", 1);
 //    data.toMove = true;
 //    data.dist = this->min_pos;
 //    data.moveDir = 2;
@@ -331,7 +331,7 @@ bool stepperM::home()
 void stepperM::updateTime(double Time)
 {
     //qDebug() << "Est. mov time is: " << Time;
-    debug_out("Est. mov time is: " + QString::number(Time));
+    debug_out("Est. mov time is: " + QString::number(Time) + "s!", 1);
     emit this->updateEstTime(Time);
 }
 
