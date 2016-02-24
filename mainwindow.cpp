@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->mono_response = "";
     this->stepper_response = "";
     this->current_Mono_Position = 0;
+    ui->curWL->setText("Monochromator has been reset!");
     //load current serial port list
     QList<QSerialPortInfo> list;
     list = QSerialPortInfo::availablePorts();
@@ -34,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->max_out_of_range->setText("Maximal stepper position out of range, using biggest possible range!");
     ui->min_out_of_range->hide();
     ui->max_out_of_range->hide();
+    ui->ResetMono->hide();
+    ui->GotoPositionButton->hide();
+    ui->curPosMono->hide();
     connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
     connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
 }
@@ -71,6 +75,7 @@ void MainWindow::on_connectMono_clicked()
     ui->mono_command->addItems(initCommands);
     ui->stepper_command->setCurrentIndex(0);
     this->current_Mono_Command = "Initialize Monochromator";
+    ui->ResetMono->show();
     ui->connectMono->hide();
 }
 
@@ -114,7 +119,17 @@ void MainWindow::on_Send_Data_Mono_clicked()
         else if(this->current_Mono_Command == "Goto position")
         {
             //this->moveMonoToPosition(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
-            emit this->moveToWL(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
+            if(!ui->Mono_Value_1->text().isEmpty())
+            {
+                bool ok = false;
+                ui->Mono_Value_1->text().toInt(&ok);
+                if(ok)
+                {
+                    emit this->moveToWL(ui->Mono_Value_1->text().toInt(&ok));
+                    this->current_Mono_Position = ui->Mono_Value_1->text().toInt();
+                    ui->curWL->setText(QString::number(ui->Mono_Value_1->text().toInt()));
+                }
+            }
             //ui->curWL->setText(QString::number(ui->Mono_Value_1->text().toInt()));
             //ui->curWL->setText("");
 
@@ -706,4 +721,31 @@ void MainWindow::doFullScan()
         this->stepper_min_limit = MIN;
         ui->startScan->show();
     }
+}
+
+void MainWindow::on_ResetMono_clicked()
+{
+    emit this->resetMono();
+    ui->curPosMono->show();
+    this->current_Mono_Position = 0;
+    ui->curWL->setText("Monochromator reset!");
+}
+
+void MainWindow::on_Mono_Value_1_textChanged(const QString &arg1)
+{
+    bool ok;
+    if(!ui->Mono_Value_1->text().isEmpty() && ui->Mono_Value_1->text().toInt(&ok))
+        if(ok)
+            ui->GotoPositionButton->show();
+        else
+            ui->GotoPositionButton->hide();
+    else
+        ui->GotoPositionButton->hide();
+}
+
+void MainWindow::on_GotoPositionButton_clicked()
+{
+    emit this->moveMonoToPosition(ui->Mono_Value_1->text().toInt());
+    this->current_Mono_Position = ui->Mono_Value_1->text().toInt();
+    ui->curWL->setText(QString::number(this->current_Mono_Position));
 }

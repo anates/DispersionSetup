@@ -147,6 +147,12 @@ private slots:
 
     void on_FullScan_clicked();
 
+    void on_ResetMono_clicked();
+
+    void on_Mono_Value_1_textChanged(const QString &arg1);
+
+    void on_GotoPositionButton_clicked();
+
 public slots:
     void Received_Stepper_Data(QString &data);
 
