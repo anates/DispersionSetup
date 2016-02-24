@@ -115,11 +115,14 @@ void MainWindow::on_Send_Data_Mono_clicked()
         {
             //this->moveMonoToPosition(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
             emit this->moveToWL(ui->Mono_Value_1->text().isEmpty()?0:ui->Mono_Value_1->text().toInt());
+            //ui->curWL->setText(QString::number(ui->Mono_Value_1->text().toInt()));
+            //ui->curWL->setText("");
+
         }
         else if(this->current_Mono_Command == "Get current position")
         {
             //qDebug() << "3800";
-            debug_out("3800");
+            debug_out("3800, not implemented yet!");
             //emit this->executeCommandMono("3800", 0);
         }
         else
@@ -319,6 +322,34 @@ void MainWindow::on_mono_command_currentIndexChanged(const QString &arg1)
     this->current_Mono_Command = arg1;
 }
 
+void MainWindow::cleanPlot()
+{
+    MainWindow::Grid.attach(ui->resultPlot);
+    MainWindow::Curve.attach(NULL);
+    MainWindow::Curve.setTitle("Dispersion curve");
+    MainWindow::Curve.setRenderHint(QwtPlotItem::RenderAntialiased, true);
+
+    MainWindow::pen.setStyle(Qt::SolidLine);
+    MainWindow::pen.setWidth(3);
+    MainWindow::pen.setBrush(Qt::blue);
+    MainWindow::pen.setCapStyle(Qt::RoundCap);
+    MainWindow::pen.setJoinStyle(Qt::RoundJoin);
+
+    MainWindow::Curve.setPen(MainWindow::pen);
+    ui->resultPlot->setAxisTitle(QwtPlot::yLeft, "");
+    ui->resultPlot->setAxisTitle(QwtPlot::xBottom, "Position [mm]");
+    QVector<double> x;
+    QVector<double> y;
+    this->plotData.clear();
+    vectorToMap(this->cleanValues, this->plotData);
+    x = QVector<double>::fromList(this->plotData.keys());
+    this->Curve.setSamples(x, y);
+    this->Curve.attach(ui->resultPlot);
+    ui->resultPlot->updateAxes();
+    ui->resultPlot->show();
+    ui->resultPlot->replot();
+}
+
 void MainWindow::replot()
 {
     MainWindow::Grid.attach(ui->resultPlot);
@@ -337,6 +368,7 @@ void MainWindow::replot()
     ui->resultPlot->setAxisTitle(QwtPlot::xBottom, "Position [mm]");
     QVector<double> x;
     QVector<double> y;
+    this->plotData.clear();
     //For debug:
     for(int i = 0; i < this->dispValues.length(); i++)
     {
@@ -419,8 +451,8 @@ void MainWindow::on_startScan_clicked()
         ui->max_out_of_range->hide();
     this->stepper_min_limit = (ui->minPos->text().isEmpty()?min:(ui->minPos->text().toDouble() <= min || ui->minPos->text().toDouble() >= max)?min:ui->minPos->text().toDouble());
     this->stepper_max_limit = (ui->maxPos->text().isEmpty()?max:(ui->maxPos->text().toDouble() >= max || ui->maxPos->text().toDouble() <= min)?max:ui->maxPos->text().toDouble());
-    int steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
-    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/steps;//100 steps
+    this->steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
+    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
     ui->size_steps->setText(QString::number(this->step_size));
     debug_out("Running a short scan from " + QString::number(this->stepper_min_limit) + " to " + QString::number(this->stepper_max_limit) + " with " + QString::number(steps) + " at the wavelength of " + " currently missing!", 1);
 //    if(this->movementTime != 0)
@@ -521,8 +553,9 @@ void MainWindow::getCurValue(double val)
     {
         //this->moveStepperToAbsPosition(this->current_Stepper_Position + this->step_size);
         //qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
-        debug_out("Stepper moving, step " + QString::number(this->curStep) + ", to position " + QString::number(this->current_Stepper_Position) + " with a stepsize of " + QString::number(this->step_size) + "!");
+        debug_out("Stepper moving, step " + QString::number(this->curStep) + ", to position " + QString::number(this->current_Stepper_Position) + " with a stepsize of " + QString::number(this->step_size) + "!", 1);
         this->curStep++;
+        ui->scanProgress->setValue((curStep)/this->steps);
         this->current_Stepper_Position += this->step_size;
         double progressValue = (double)(this->current_Stepper_Position - this->stepper_min_limit)/(double)(this->stepper_max_limit - this->stepper_min_limit);
         ui->scanProgress->setValue((int)(progressValue));
@@ -536,6 +569,7 @@ void MainWindow::getCurValue(double val)
         debug_out("Scan finished, moving back to first position!");
         //qDebug() << "Scan finished, moving back to first position!";
         this->moveStepperToAbsPosition(this->stepper_min_limit);
+        ui->scanProgress->setValue(0);
         if(this->multiAqu == false)
         {
             ui->minPos->setReadOnly(false);
@@ -544,6 +578,10 @@ void MainWindow::getCurValue(double val)
             ui->minPos->setText("");
             ui->maxPos->setText("");
             ui->num_steps->setText("");
+            ui->startValue->setText("");
+            ui->stopValue->setText("");
+            this->stepper_min_limit = MIN;
+            this->stepper_max_limit = MAX;
         }
         this->step_size = 0;
         this->scanRun = false;

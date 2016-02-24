@@ -18,8 +18,8 @@
 #include "monochrom.h"
 #include "stepperm.h"
 
-#define MAX 15
-#define MIN 4
+#define MAX 16
+#define MIN 0
 
 
 namespace Ui {
@@ -84,6 +84,7 @@ private:
     QwtPlotGrid Grid;
 
     QVector<QPair<double, double> > dispValues;
+    QVector<QPair<double, double> > cleanValues;
     QMap<double, double> plotData;
 
     AudioIn *logDevice = NULL;
@@ -97,6 +98,7 @@ private:
 
     int num_steps = 100;
     double step_size = 0;
+    int steps = 0;
     int curStep = 0;
 
     int wlSteps = 0;
@@ -105,6 +107,8 @@ private:
     QVector<QPair<int, QPair<double, double> > > DispResults;
 
     void replot();
+
+    void cleanPlot();
 
     QPair<double, double> getMaxValue(void);
 

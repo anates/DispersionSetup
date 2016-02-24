@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>829</height>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -213,35 +213,35 @@
           <item row="4" column="1">
            <widget class="QLineEdit" name="maxPos"/>
           </item>
-          <item row="7" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="8" column="1">
            <widget class="QPushButton" name="startScan">
             <property name="text">
              <string>Start measurement</string>
             </property>
            </widget>
           </item>
-          <item row="9" column="1">
+          <item row="10" column="1">
            <widget class="QPushButton" name="MovStopped">
             <property name="text">
              <string>MovementStopped</string>
             </property>
            </widget>
           </item>
-          <item row="10" column="1">
+          <item row="11" column="1">
            <widget class="QPushButton" name="FullScan">
             <property name="text">
              <string>Do full scan</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="7" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QLabel" name="label_16">
@@ -276,6 +276,20 @@
            <widget class="QLabel" name="max_out_of_range">
             <property name="text">
              <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="curWL">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Current wavelenght [nm]</string>
             </property>
            </widget>
           </item>
