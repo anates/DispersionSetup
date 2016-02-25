@@ -216,10 +216,12 @@ void stepperMworker::timerEvent(QTimerEvent *event)
 
 
 
-stepperM::stepperM(QString port, QObject *parent) : QObject(parent)
+stepperM::stepperM(QString port, double min, double max, QObject *parent) : QObject(parent)
 {
     serialPortInfos data;
     data.portName = port;
+    this->min_pos = min;
+    this->max_pos = max;
     stepperMworker *newStepper = new stepperMworker(data);
     newStepper->moveToThread(&(this->workerThread));
     connect(&(this->workerThread), &QThread::finished, newStepper, &stepperMworker::deleteLater);
@@ -269,6 +271,8 @@ void stepperM::updatePosition(double newPos)
 
 bool stepperM::moveAbs(double newPos)
 {
+    if(this->cur_pos == -1)
+        this->cur_pos = 0;
     if(newPos < this->min_pos || newPos > this->max_pos)
         return false;
     else
@@ -288,6 +292,8 @@ bool stepperM::moveAbs(double newPos)
 
 bool stepperM::moveRel(double newPos)
 {
+    if(this->cur_pos == -1)
+        this->cur_pos = 0;
     if((this->cur_pos + newPos) < this->min_pos || (this->cur_pos + newPos) > this->max_pos)
         return false;
     else

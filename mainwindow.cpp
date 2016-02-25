@@ -86,7 +86,7 @@ void MainWindow::on_connect_stepper_clicked()
 //    this->stepper = new serial_controller(list[ui->stepper_connections->currentIndex()].portName(), 1000, 57600, 1, false, false, false, false);
 //    connect(this->stepper, &serial_controller::response, this, &MainWindow::Received_Stepper_Data);
 //    connect(this, &MainWindow::executeCommandStepper, this->stepper, &serial_controller::transaction);
-    this->stepp = new stepperM(list[ui->stepper_connections->currentIndex()].portName());
+    this->stepp = new stepperM(list[ui->stepper_connections->currentIndex()].portName(), MIN, MAX);
     connect(this, &MainWindow::AbsStepper, this->stepp, &stepperM::moveAbs);
     connect(this, &MainWindow::RelStepper, this->stepp, &stepperM::moveRel);
     connect(this, &MainWindow::homeMirror, this->stepp, &stepperM::home);
@@ -138,7 +138,7 @@ void MainWindow::on_Send_Data_Mono_clicked()
         {
             //qDebug() << "3800";
             debug_out("3800, not implemented yet!");
-            //emit this->executeCommandMono("3800", 0);
+            emit this->getCurrentPos();
         }
         else
             //qDebug() << "Unknown mono command";
@@ -181,20 +181,23 @@ void MainWindow::on_Send_Data_Stepper_clicked()
             if(ui->Stepper_Value_1->text().isEmpty() == false)
             {
                 bool res = true;
-                if(ui->Stepper_Value_1->text().toDouble() > this->stepper_max_limit)
+                if(ui->Stepper_Value_1->text().toDouble() > MAX)
                 {
-                    res = emit this->AbsStepper(this->stepper_max_limit);
-                    this->current_Stepper_Position = this->stepper_max_limit;
+                    res = emit this->AbsStepper((MAX));
+                    if(res)
+                        this->current_Stepper_Position = (MAX);
                 }
-                else if(ui->Stepper_Value_1->text().toDouble() >= this->stepper_min_limit && ui->Stepper_Value_1->text().toDouble() <= this->stepper_min_limit)
+                else if(ui->Stepper_Value_1->text().toDouble() >= MIN && ui->Stepper_Value_1->text().toDouble() <= MAX)
                 {
                     res = emit this->AbsStepper(ui->Stepper_Value_1->text().toDouble());
-                    this->current_Stepper_Position = ui->Stepper_Value_1->text().toDouble();
+                    if(res)
+                        this->current_Stepper_Position = ui->Stepper_Value_1->text().toDouble();
                 }
                 else
                 {
-                    res = emit this->AbsStepper(this->stepper_min_limit);
-                    this->current_Stepper_Position = this->stepper_min_limit;
+                    res = emit this->AbsStepper(MIN);
+                    if(res)
+                        this->current_Stepper_Position = MIN;
                 }
                 //bool res = emit this->AbsStepper((ui->Stepper_Value_1->text().toDouble() > this->stepper_max_limit?this->stepper_max_limit:ui->Stepper_Value_1->text().toDouble()));
                 if(res == true)
@@ -213,10 +216,10 @@ void MainWindow::on_Send_Data_Stepper_clicked()
                 bool res = true;
                 if(ui->Stepper_Value_1->text().toDouble() > 0)
                 {
-                    if(this->current_Stepper_Position + ui->Stepper_Value_1->text().toDouble() > this->stepper_max_limit)
+                    if(this->current_Stepper_Position + ui->Stepper_Value_1->text().toDouble() > MAX)
                     {
-                        res = emit this->RelStepper(this->stepper_max_limit - this->current_Stepper_Position);
-                        this->current_Stepper_Position = this->stepper_max_limit;
+                        res = emit this->RelStepper(MAX - this->current_Stepper_Position);
+                        this->current_Stepper_Position = MAX;
                     }
                     else
                     {
@@ -226,10 +229,10 @@ void MainWindow::on_Send_Data_Stepper_clicked()
                 }
                 else
                 {
-                    if(this->current_Stepper_Position - ui->Stepper_Value_1->text().toDouble() < this->stepper_min_limit)
+                    if(this->current_Stepper_Position + ui->Stepper_Value_1->text().toDouble() < MIN)
                     {
-                        res = emit this->RelStepper(this->stepper_min_limit - this->current_Stepper_Position);
-                        this->current_Stepper_Position = this->stepper_min_limit;
+                        res = emit this->RelStepper(MIN - this->current_Stepper_Position);
+                        this->current_Stepper_Position = MIN;
                     }
                     else
                     {
@@ -708,7 +711,7 @@ void MainWindow::doFullScan()
         this->DispResults.push_back(qMakePair(this->current_Mono_Position, this->getMaxValue()));
         this->moveMonoToPosition(this->current_Mono_Position + this->wlSteps + 1);
         QThread::sleep(1);
-        this->wlSteps++;
+        this->wlSteps+=1;
         this->fileName = QString::number(ui->startValue->text().toInt() + this->wlSteps);
         this->on_startScan_clicked();
     }

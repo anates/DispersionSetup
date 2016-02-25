@@ -59,10 +59,10 @@ class stepperM : public QObject
 private:
     QThread workerThread;
 
-    double min_pos = 4, max_pos = 16;
-    double cur_pos = 4;
+    double min_pos, max_pos;
+    double cur_pos = -1;
 public:
-    explicit stepperM(QString port, QObject *parent = 0);
+    explicit stepperM(QString port, double min, double max, QObject *parent = 0);
     ~stepperM();
 
     double getCurPosVal(void);
@@ -86,7 +86,6 @@ public slots:
     void updatePosition(double newPos);
     void updateTime(double Time);
     void StpMovFinished(void);
-    //This is a test comment
 };
 
 #endif // STEPPERM_H

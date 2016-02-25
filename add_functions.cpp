@@ -16,5 +16,5 @@ void debug_out(QString data, int debug_level)
     if(debug_level > 0)
         out << '\n' << data << " " << QDateTime::currentMSecsSinceEpoch();
     file.close();
-    qDebug() << data << " " << QDateTime::currentMSecsSinceEpoch();
+    qDebug() << data;// << " " << QDateTime::currentMSecsSinceEpoch();
 }
