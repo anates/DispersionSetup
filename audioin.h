@@ -3,6 +3,8 @@
 #include <portaudio.h>
 #include <cstring>
 #include <QDebug>
+#include <fftw++.h>
+#include <Array.h>
 #include "add_functions.h"
 #define SAMPLE_RATE  (44100)
 #define FRAMES_PER_BUFFER (512)
@@ -12,7 +14,7 @@
 /** Set to 1 if you want to capture the recording to a file. */
 #define WRITE_TO_FILE   (0)
 
-#define FORMAT 1
+#define FORMAT 2
 
 
 /* Select sample format. */
@@ -60,11 +62,15 @@ private:
     int                 numBytes;
     SAMPLE              max, neg_max, val;
     double              average;
+
+    void applyHanningWindow(void);
 signals:
     void currentAmp(double val);
+    void currentSound(QVector<double> data);
 public slots:
     void maxAmplitude(void);
-
+    void getAudioData(void);
+    void getFFTdata(void);
 public:
     AudioIn();
     ~AudioIn();

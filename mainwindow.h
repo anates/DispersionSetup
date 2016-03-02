@@ -50,8 +50,9 @@ signals:
     bool AbsStepper(double newPos);
     bool RelStepper(double newPos);
     void getMovementTime(double pos);
-
+    //To audio
     void getNewValue(void);
+    void getNewFFT(void);
 
     void maxValue(double val);
 
@@ -159,6 +160,8 @@ public slots:
     void Received_Mono_Data(QString &data);
 
     void getCurValue(double val);
+
+    void getCurFFT(QVector<double> val);
 
     void CurPosUpdate(double pos);
 

@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->curPosMono->hide();
     connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
     connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
+    connect(this->logDevice, &AudioIn::currentSound, this, &MainWindow::getCurFFT);
+    connect(this, &MainWindow::getNewFFT, this->logDevice, &AudioIn::getFFTdata);
 }
 
 MainWindow::~MainWindow()
@@ -77,6 +79,7 @@ void MainWindow::on_connectMono_clicked()
     this->current_Mono_Command = "Initialize Monochromator";
     ui->ResetMono->show();
     ui->connectMono->hide();
+    ui->mono_Connections->hide();
 }
 
 void MainWindow::on_connect_stepper_clicked()
@@ -105,6 +108,7 @@ void MainWindow::on_connect_stepper_clicked()
     ui->stepper_command->setCurrentIndex(0);
     this->current_Stepper_Command = "Initialize stepper motor controller";
     ui->connect_stepper->hide();
+    ui->stepper_connections->hide();
 }
 
 void MainWindow::on_Send_Data_Mono_clicked()
@@ -554,6 +558,7 @@ void MainWindow::ScanMovementStopped()
         //qDebug() << "Get next value!";
         this->curStep += this->step_size;
         emit this->getNewValue();
+        emit this->getNewFFT();
     }
     else if(this->multiAqu)
         this->doFullScan();
@@ -606,6 +611,21 @@ void MainWindow::getCurValue(double val)
         this->curStep = 0;
         this->replot();
     }
+}
+
+void MainWindow::getCurFFT(QVector<double> val)
+{
+    QString filename = QString::number(this->current_Mono_Position) + QString::number(this->current_Stepper_Position) + ".txt";
+    QFile file(filename);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        debug_out(file.errorString(), 1);
+        return;
+    }
+    QTextStream out(&file);
+    for(int i = 0; i < val.size(); i++)
+        out << i << '\t' << val[i] << '\n';
+    file.close();
 }
 
 void MainWindow::write_unformatted_file(const QVector<QPair<int, QPair<double, double> > > &Data/*const QMap<double, double> &Data*/, QString fileName = "DispersionValues")
@@ -674,6 +694,7 @@ void MainWindow::on_MovStopped_clicked()
 {
     this->curStep += this->step_size;
     emit this->getNewValue();
+    emit this->getNewFFT();
 }
 
 void MainWindow::on_FullScan_clicked()

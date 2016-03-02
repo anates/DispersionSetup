@@ -111,38 +111,8 @@ void AudioIn::testAudioIn()
 
 void AudioIn::maxAmplitude()
 {
-    //qDebug() << "Recording now!";
-    debug_out("Recording now!");
-    //qDebug() << "Data index 0: " << this->data.frameIndex;
-    debug_out("Data index 0: " + QString::number(this->data.frameIndex));
-    this->err = Pa_OpenStream(
-                  &(this->stream),
-                  &(this->InputParams),
-                  NULL,                  /* &outputParameters, */
-                  SAMPLE_RATE,
-                  FRAMES_PER_BUFFER,
-                  paClipOff,      /* we won't output out of range samples so don't bother clipping them */
-                  recordCallback,
-                  &data );
-    this->err = Pa_StartStream( this->stream );
-    if( this->err != paNoError )
-        return;
-    while( ( err = Pa_IsStreamActive( this->stream ) ) == 1 )
-    {
-        Pa_Sleep(100);
-        //qDebug() << "Data index: " << this->data.frameIndex;
-    }
-    if( this->err < 0 )
-    {
-        //qDebug() << "Error: " << Pa_GetErrorText(this->err);
-        debug_out("Error: " + QString(Pa_GetErrorText(this->err)));
-        return;
-    }
-
-    this->err = Pa_CloseStream( stream );
-    if( this->err != paNoError )
-        return;
-
+    if(this->data.frameIndex == 0)
+        this->getAudioData();
     /* Measure maximum peak amplitude. */
     this->max = 0;
     this->neg_max = 0;
@@ -176,4 +146,82 @@ void AudioIn::maxAmplitude()
     this->data.frameIndex = 0;
     //Cleaning finished?
     emit this->currentAmp(average);
+}
+
+void AudioIn::applyHanningWindow()
+{
+    for(int i = 0; i < numSamples; i++)
+    {
+        this->data.recordedSamples[i]*=(0.54-0.46*cos((2*M_PI*i)/((double)(numSamples-1))));
+    }
+}
+
+void AudioIn::getAudioData()
+{
+    qDebug() << "Recording now!";
+    qDebug() << "Data index 0: " << this->data.frameIndex;
+    this->err = Pa_OpenStream(
+                  &(this->stream),
+                  &(this->InputParams),
+                  NULL,                  /* &outputParameters, */
+                  SAMPLE_RATE,
+                  FRAMES_PER_BUFFER,
+                  paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+                  recordCallback,
+                  &(this->data) );
+    this->err = Pa_StartStream( this->stream );
+    if( this->err != paNoError )
+        return;
+    while( ( err = Pa_IsStreamActive( this->stream ) ) == 1 )
+    {
+        Pa_Sleep(100);
+        //qDebug() << "Data index: " << this->data.frameIndex;
+    }
+    if( this->err < 0 )
+    {
+        qDebug() << "Error: " << Pa_GetErrorText(this->err);
+        return;
+    }
+
+    this->err = Pa_CloseStream( stream );
+    if( this->err != paNoError )
+        return;
+}
+
+void AudioIn::getFFTdata()
+{
+    if(this->data.frameIndex == 0)
+        this->getAudioData();
+    fftwpp::fftw::maxthreads=get_max_threads();
+    unsigned int n=pow(2,17);
+    unsigned int np=n/2+1;
+    size_t align=sizeof(Complex);
+    qDebug() << "Now aquiring the FFTW, building up the arrays for " << numSamples << " data!";
+    Array::array1<Complex> F(np,align);
+    Array::array1<double> f(n,align);               // For out-of-place transforms
+    //  array1<double> f(2*np,(double *) F()); // For in-place transforms
+
+    fftwpp::rcfft1d Forward(n,f,F);
+    fftwpp::crfft1d Backward(n,F,f);
+    qDebug() << "Applying filtering";
+    this->applyHanningWindow();
+
+    QVector<double> Amplitude;
+
+    qDebug() << "Putting " << numSamples << " into an array!";
+    for(unsigned int i = 0; i < n; i++)
+        f[i] = this->data.recordedSamples[i];
+
+    qDebug() << "input:\n" << f[0] << '\n';
+
+    Forward.fft(f,F);
+
+    qDebug() << "output:\n" << F[0].real() << ", " << F[0].imag() << '\n';
+
+    for(unsigned int i = 0; i < np; i++)
+        Amplitude.append(F[i].real()*F[i].real()+F[i].imag()*F[i].imag());
+    emit this->currentSound(Amplitude);
+    if(this->data.recordedSamples != NULL)
+        memset(this->data.recordedSamples, 0, this->numBytes);
+    this->data.frameIndex = 0;
 }
