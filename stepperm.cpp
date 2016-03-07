@@ -210,6 +210,7 @@ void stepperMworker::move(void)
 
 void stepperMworker::timerEvent(QTimerEvent *event)
 {
+    UNUSED(event);
     if(this->timerID != 0)
     killTimer(this->timerID);
     //qDebug() << "Timerevent is: " << event;

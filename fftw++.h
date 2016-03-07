@@ -39,6 +39,9 @@
 #include <omp.h>
 #endif
 
+//For removing warnings
+#define UNUSED(x) (void)(x)
+
 inline int get_thread_num() 
 {
 #ifdef FFTWPP_SINGLE_THREAD
@@ -273,7 +276,7 @@ public:
     if(plan) fftw_destroy_plan(plan);
   }
   
-  virtual fftw_plan Plan(Complex *in, Complex *out) {return NULL;};
+  virtual fftw_plan Plan(Complex *in, Complex *out) {UNUSED(in); UNUSED(out);return NULL;};
   
   inline void CheckAlign(Complex *p, const char *s) {
     if((size_t) p % sizeof(Complex) == 0) return;
@@ -339,9 +342,11 @@ public:
   }
   
   virtual threaddata lookup(bool inplace, unsigned int threads) {
+      UNUSED(threads);
+      UNUSED(inplace);
     return threaddata();
   }
-  virtual void store(bool inplace, const threaddata& data) {}
+  virtual void store(bool inplace, const threaddata& data) {UNUSED(data); UNUSED(inplace);}
   
   inline Complex *CheckAlign(Complex *in, Complex *out, bool constructor=true)
   {

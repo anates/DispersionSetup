@@ -506,6 +506,7 @@ void MainWindow::on_startScan_clicked()
     this->stepper_min_limit = (ui->minPos->text().isEmpty()?min:(ui->minPos->text().toDouble() <= min || ui->minPos->text().toDouble() >= max)?min:ui->minPos->text().toDouble());
     this->stepper_max_limit = (ui->maxPos->text().isEmpty()?max:(ui->maxPos->text().toDouble() >= max || ui->maxPos->text().toDouble() <= min)?max:ui->maxPos->text().toDouble());
     this->steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
+    this->ScanPosData.refill(this->stepper_min_limit, this->stepper_max_limit, this->steps);
     this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
     ui->size_steps->setText(QString::number(this->step_size));
     debug_out("Running a short scan from " + QString::number(this->stepper_min_limit) + " to " + QString::number(this->stepper_max_limit) + " with " + QString::number(steps) + " at the wavelength of " + " currently missing!", 1);
@@ -789,6 +790,7 @@ void MainWindow::on_ResetMono_clicked()
 
 void MainWindow::on_Mono_Value_1_textChanged(const QString &arg1)
 {
+    UNUSED(arg1);
     bool ok;
     if(!ui->Mono_Value_1->text().isEmpty() && ui->Mono_Value_1->text().toInt(&ok))
         if(ok)

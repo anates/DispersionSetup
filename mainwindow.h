@@ -21,6 +21,7 @@
 #define MAX 16
 #define MIN 0
 
+#define UNUSED(x) (void)(x)
 
 namespace Ui {
 class MainWindow;
@@ -101,6 +102,8 @@ private:
     double step_size = 0;
     int steps = 0;
     int curStep = 0;
+
+    scanData ScanPosData;
 
     int wlSteps = 0;
 

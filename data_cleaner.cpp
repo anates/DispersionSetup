@@ -2,6 +2,7 @@
 //Data_worker
 data_worker::data_worker(buffer_ring *buffer, QObject *parent)
 {
+    UNUSED(parent);
     this->buffer = buffer;
     this->filter = QRegExp("[A-z][A-z]\\d{1,2}.\\d+");
 }

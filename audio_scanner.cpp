@@ -4,6 +4,7 @@
 
 audio_worker::audio_worker(QObject *parent)
 {
+    UNUSED(parent);
     this->logDevice = new AudioIn();
     //qDebug() << QString::number(Pa_Initialize());
     debug_out(QString::number(Pa_Initialize()));
@@ -50,6 +51,7 @@ void audio_worker::test_audio()
 //Main class
 audio_scanner::audio_scanner(QObject *parent)
 {
+    UNUSED(parent);
     audio_worker *audio = new audio_worker();
     audio->moveToThread(&workerThread);
 
