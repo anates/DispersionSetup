@@ -36,7 +36,7 @@ signals:
     void updatePosition(double);
     void updateMovementTime(double);
     void movementFinished(void);
-
+    void connError(bool);
     //Internal
     void ReadingError(QString);
 public slots:
@@ -49,6 +49,7 @@ public slots:
     bool getCurPos(void);
     void prepareMovement(movementData data);
     void move(void);
+    void connectionError(bool error);
 
 };
 
@@ -77,6 +78,7 @@ signals:
     void estMovTime(double);
     void move(movementData data);
     void movementFinished(void);
+    void connErr(bool);
 public slots:
     void getEstimatedMovementTime(double pos);
     bool moveAbs(double newPos);
@@ -86,6 +88,7 @@ public slots:
     void updatePosition(double newPos);
     void updateTime(double Time);
     void StpMovFinished(void);
+    void connectionError(bool error);
 };
 
 #endif // STEPPERM_H

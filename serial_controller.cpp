@@ -12,6 +12,11 @@ serial_controller_worker::serial_controller_worker(const QString &portname, int 
     this->serial = new QSerialPort(this);
     this->storage = "";
     this->delay_write = 0;
+
+}
+
+bool serial_controller_worker::connectToSerial()
+{
     connect(this->serial, &QSerialPort::readyRead, this, &serial_controller_worker::read_data);
     this->serial->setPortName(this->portName);
     this->serial->setDataBits(QSerialPort::Data8);
@@ -23,15 +28,19 @@ serial_controller_worker::serial_controller_worker(const QString &portname, int 
     if (!serial->open(QIODevice::ReadWrite))
     {
         emit error(tr("Can't open %1, error code %2").arg(portName).arg(serial->error()));
+        emit this->error_Val(false);
+        qDebug() << "Device is not open!";
         //qDebug() << tr("Can't open %1, error code %2").arg(portName).arg(serial->error());
         debug_out(tr("Can't open %1, error code %2").arg(portName).arg(serial->error()));
-        return;
+        return false;
     }
     else
     {
         emit error(tr("Opened %1").arg(portName));
+        emit this->error_Val(true);
         //qDebug() << tr("Opened %1").arg(portName);
         debug_out(tr("Opened %1").arg(portName));
+        return true;
     }
 }
 
@@ -42,6 +51,8 @@ serial_controller_worker::~serial_controller_worker()
     if(this->serial != NULL)
         delete this->serial;
 }
+
+
 
 void serial_controller_worker::read_data()
 {
@@ -117,8 +128,11 @@ serial_controller::serial_controller(const QString &portName, int waitTimeout, i
     this->Hex = Hex;
     connect(&workerThread, &QThread::finished, newWorker, &QObject::deleteLater);
     connect(this, &serial_controller::newTransaction, newWorker, &serial_controller_worker::transaction);
+    connect(this, &serial_controller::connect_now, newWorker, &serial_controller_worker::connectToSerial);
     connect(newWorker, &serial_controller_worker::response, this, &serial_controller::response_slot);
+    connect(newWorker, &serial_controller_worker::error_Val, this, &serial_controller::connectError);
     workerThread.start();
+    emit this->connect_now();
 
 //    this->portName = portName;
 //    this->waitTimeout = waitTimeout;
@@ -181,3 +195,11 @@ void serial_controller::response_slot(QString response)
     emit this->response(response);
 }
 
+void serial_controller::connectError(bool errVal)
+{
+    if(errVal == false)
+        qDebug() << "No connection possible!";
+    else
+        qDebug() << "Connection possible";
+    emit this->error_Val(errVal);
+}

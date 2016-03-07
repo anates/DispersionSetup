@@ -8,6 +8,7 @@ stepperMworker::stepperMworker(serialPortInfos data, QObject *parent) : QObject(
     connect(this, &stepperMworker::executeCommand, this->stepper, &serial_controller::transaction);
     connect(this->stepper, &serial_controller::response, this, &stepperMworker::newData);
     connect(this, &stepperMworker::ReadingError, this, &stepperMworker::newData);
+    connect(this->stepper, &serial_controller::error_Val, this, &stepperMworker::connectionError);
     //connect(this->cleaner, &data_cleaner::resultData, this, &stepperMworker::newData);
 }
 
@@ -149,6 +150,10 @@ bool stepperMworker::getCurPos()
     return true;
 }
 
+void stepperMworker::connectionError(bool error)
+{
+    emit this->connError(error);
+}
 
 void stepperMworker::home()
 {
@@ -234,6 +239,7 @@ stepperM::stepperM(QString port, double min, double max, QObject *parent) : QObj
     connect(newStepper, &stepperMworker::updateMovementTime, this, &stepperM::updateTime);
     connect(newStepper, &stepperMworker::updatePosition, this, &stepperM::updatePosition);
     connect(newStepper, &stepperMworker::movementFinished, this, &stepperM::StpMovFinished);
+    connect(newStepper, &stepperMworker::connError, this, &stepperM::connectionError);
     workerThread.start();
 }
 
@@ -248,6 +254,11 @@ bool stepperM::getCurPos()
 {
     bool a = emit this->WhereAmI();
     return a;
+}
+
+void stepperM::connectionError(bool error)
+{
+    emit this->connErr(error);
 }
 
 double stepperM::getCurPosVal()

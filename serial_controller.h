@@ -35,9 +35,11 @@ private:
 public slots:
     void transaction(const QString &request, double delay);
     void read_data(void);
+    bool connectToSerial(void);
 signals:
     void response(QString s);
     void error(const QString &s);
+    void error_Val(bool errVal);
     void timeout(const QString &s);
 public:
     serial_controller_worker(const QString &portname, int waitTimeout, int BaudRate, int numStopBits, bool parity, bool useParity, bool useHex);
@@ -82,12 +84,15 @@ public slots:
     void transaction(const QString &request, double delay);
     void response_slot(QString response);
     void read_data(void);
+    void connectError(bool errVal);
 signals:
     void newTransaction(const QString &request, double delay);
     void response(QString s);
     void error(const QString &s);
     void timeout(const QString &s);
     void CountValue(double val);
+    void error_Val(bool errVal);
+    void connect_now(void);
 };
 
 #endif // SERIAL_CONTROLLER_H

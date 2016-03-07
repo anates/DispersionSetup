@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="monoConnections">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -36,7 +36,7 @@
          <widget class="QComboBox" name="stepper_connections"/>
         </item>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="stepperPortLabel">
           <property name="text">
            <string>Port</string>
           </property>
@@ -91,7 +91,7 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="monoPortLabel">
           <property name="text">
            <string>Port</string>
           </property>

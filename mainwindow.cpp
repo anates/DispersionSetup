@@ -31,6 +31,23 @@ MainWindow::MainWindow(QWidget *parent) :
     this->params.hostApiSpecificStreamInfo = NULL;
     this->logDevice->initAudioIn(this->params, 3);
     this->logDevice->testAudioIn();
+    QList<QString> initCommands;
+    initCommands.append("Initialize Monochromator");
+    initCommands.append("Goto position");
+    initCommands.append("Get current position");
+    ui->mono_command->addItems(initCommands);
+    ui->stepper_command->setCurrentIndex(0);
+    this->current_Mono_Command = "Initialize Monochromator";
+    QList<QString> initCommand;
+    initCommand.append("Initialize stepper motor controller");
+    initCommand.append("Home controller");
+    initCommand.append("Get current position");
+    initCommand.append("Move absolute");
+    initCommand.append("Move relative");
+    initCommand.append("Get movement time");
+    ui->stepper_command->addItems(initCommand);
+    ui->stepper_command->setCurrentIndex(0);
+    this->current_Stepper_Command = "Initialize stepper motor controller";
     ui->min_out_of_range->setText("Minimal stepper position out of range, using smallest possible range!");
     ui->max_out_of_range->setText("Maximal stepper position out of range, using biggest possible range!");
     ui->min_out_of_range->hide();
@@ -70,16 +87,25 @@ void MainWindow::on_connectMono_clicked()
     connect(this, &MainWindow::resetMono, this->mono, &monoChrom::resetMono);
     connect(this, &MainWindow::moveToWL, this->mono, &monoChrom::moveMonoToWL);
     connect(this, &MainWindow::getCurrentPos, this->mono, &monoChrom::getCurrentWL);
-    QList<QString> initCommands;
-    initCommands.append("Initialize Monochromator");
-    initCommands.append("Goto position");
-    initCommands.append("Get current position");
-    ui->mono_command->addItems(initCommands);
-    ui->stepper_command->setCurrentIndex(0);
-    this->current_Mono_Command = "Initialize Monochromator";
+    connect(this->mono, &monoChrom::connectionError, this, &MainWindow::monoConnectionError);
+
     ui->ResetMono->show();
     ui->connectMono->hide();
     ui->mono_Connections->hide();
+    ui->monoPortLabel->hide();
+}
+
+void MainWindow::monoConnectionError(bool error)
+{
+    if(error == false)
+    {
+        delete this->mono;
+        this->mono = NULL;
+        ui->ResetMono->hide();
+        ui->connectMono->show();
+        ui->mono_Connections->show();
+        ui->monoPortLabel->show();
+    }
 }
 
 void MainWindow::on_connect_stepper_clicked()
@@ -97,19 +123,25 @@ void MainWindow::on_connect_stepper_clicked()
     connect(this->stepp, &stepperM::updateEstTime, this, &MainWindow::movementTimeUpdate);
     connect(this->stepp, &stepperM::curPosUpdate, this, &MainWindow::CurPosUpdate);
     connect(this->stepp, &stepperM::movementFinished, this, &MainWindow::ScanMovementStopped);
-    QList<QString> initCommand;
-    initCommand.append("Initialize stepper motor controller");
-    initCommand.append("Home controller");
-    initCommand.append("Get current position");
-    initCommand.append("Move absolute");
-    initCommand.append("Move relative");
-    initCommand.append("Get movement time");
-    ui->stepper_command->addItems(initCommand);
-    ui->stepper_command->setCurrentIndex(0);
-    this->current_Stepper_Command = "Initialize stepper motor controller";
+    connect(this->stepp, &stepperM::connErr, this, &MainWindow::stepperConnectionError);
+
     ui->connect_stepper->hide();
     ui->stepper_connections->hide();
+    ui->stepperPortLabel->hide();
 }
+
+void MainWindow::stepperConnectionError(bool error)
+{
+    if(error == false)
+    {
+        delete this->stepp;
+        this->stepp = NULL;
+        ui->connect_stepper->show();
+        ui->stepper_connections->show();
+        ui->stepperPortLabel->show();
+    }
+}
+
 
 void MainWindow::on_Send_Data_Mono_clicked()
 {

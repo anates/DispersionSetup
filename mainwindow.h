@@ -167,6 +167,9 @@ public slots:
 
     void movementTimeUpdate(double Time);
 
+    void stepperConnectionError(bool error);
+
+    void monoConnectionError(bool error);
 private:
     Ui::MainWindow *ui;
 };

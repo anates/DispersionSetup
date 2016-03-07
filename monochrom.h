@@ -19,11 +19,13 @@ signals:
     void executeCommand(QString, int);
     void gotNewData(QString);
     void currentWLVal(int);
+    void connErr(bool);
 public slots:
     void newData(QString data);
     bool moveToWL(int WL);
     void Reset(void);
     int getCurrentWL(void);
+    void connectionError(bool error);
 };
 
 
@@ -42,6 +44,7 @@ signals:
     bool moveToWL(int);
     void reset(void);
     void renewCurrentWL(int);
+    void connectionError(bool);
 
 public slots:
     void setCurrentWL(int data);
@@ -49,6 +52,7 @@ public slots:
     bool moveMonoToWL(int WL);
     void getCurrentMonoWL(void);
     void gotNewData(QString data);
+    void connErr(bool error);
 };
 
 #endif // MONOCHROM_H

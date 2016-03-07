@@ -5,6 +5,7 @@ monoChromworker::monoChromworker(serialPortInfos data, QObject *parent) : QObjec
     this->monochromator = new serial_controller(data.portName, 1000, 9600, 1, false, false, false, true);
     connect(this->monochromator, &serial_controller::response, this, &monoChromworker::newData);
     connect(this, &monoChromworker::executeCommand, this->monochromator, &serial_controller::transaction);
+    connect(this->monochromator, &serial_controller::error_Val, this, &monoChromworker::connectionError);
 }
 
 monoChromworker::~monoChromworker()
@@ -50,6 +51,11 @@ int monoChromworker::getCurrentWL()
     return this->currentWL;
 }
 
+void monoChromworker::connectionError(bool error)
+{
+    emit this->connErr(error);
+}
+
 //Main class
 
 monoChrom::monoChrom(QString port, QObject *parent) : QObject(parent)
@@ -64,6 +70,7 @@ monoChrom::monoChrom(QString port, QObject *parent) : QObject(parent)
     connect(this, &monoChrom::getCurrentWL, newMonoChrom, &monoChromworker::getCurrentWL);
     connect(newMonoChrom, &monoChromworker::gotNewData, this, &monoChrom::gotNewData);
     connect(newMonoChrom, &monoChromworker::currentWLVal, this, &monoChrom::setCurrentWL);
+    connect(newMonoChrom, &monoChromworker::connErr, this, &monoChrom::connErr);
     workerThread.start();
 }
 
@@ -99,4 +106,9 @@ void monoChrom::getCurrentMonoWL()
 void monoChrom::setCurrentWL(int data)
 {
     emit this->renewCurrentWL(data);
+}
+
+void monoChrom::connErr(bool error)
+{
+    emit this->connectionError(error);
 }
