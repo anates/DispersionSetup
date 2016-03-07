@@ -503,13 +503,13 @@ void MainWindow::on_startScan_clicked()
     }
     else
         ui->max_out_of_range->hide();
-    this->stepper_min_limit = (ui->minPos->text().isEmpty()?min:(ui->minPos->text().toDouble() <= min || ui->minPos->text().toDouble() >= max)?min:ui->minPos->text().toDouble());
-    this->stepper_max_limit = (ui->maxPos->text().isEmpty()?max:(ui->maxPos->text().toDouble() >= max || ui->maxPos->text().toDouble() <= min)?max:ui->maxPos->text().toDouble());
-    this->steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
-    this->ScanPosData.refill(this->stepper_min_limit, this->stepper_max_limit, this->steps);
-    this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
-    ui->size_steps->setText(QString::number(this->step_size));
-    debug_out("Running a short scan from " + QString::number(this->stepper_min_limit) + " to " + QString::number(this->stepper_max_limit) + " with " + QString::number(steps) + " at the wavelength of " + " currently missing!", 1);
+    double scan_min_pos = (ui->minPos->text().isEmpty()?min:(ui->minPos->text().toDouble() <= min || ui->minPos->text().toDouble() >= max)?min:ui->minPos->text().toDouble());
+    double scan_max_pos = (ui->maxPos->text().isEmpty()?max:(ui->maxPos->text().toDouble() >= max || ui->maxPos->text().toDouble() <= min)?max:ui->maxPos->text().toDouble());
+    int scan_steps = ui->num_steps->text().isEmpty()?500:ui->num_steps->text().toInt();
+    this->ScanPosData.refill(scan_min_pos, scan_max_pos, scan_steps, this->current_Mono_Position);
+    //this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
+    ui->size_steps->setText(QString::number(this->ScanPosData.stepsize));
+    debug_out("Running a short scan from " + QString::number(this->ScanPosData.start) + " to " + QString::number(this->ScanPosData.stop) + " with " + QString::number(this->ScanPosData.steps) + " at the wavelength of " + QString::number(this->ScanPosData.waveLenght), 1);
 //    if(this->movementTime != 0)
 //    {
 //        this->homeStepper();
@@ -535,8 +535,9 @@ void MainWindow::on_startScan_clicked()
 //    }
 
 //    this->getEstimatedMovementTime(this->step_size);
-    emit this->moveStepperToAbsPosition(this->stepper_min_limit);
+    emit this->moveStepperToAbsPosition(this->ScanPosData.start);
     ui->startScan->hide();
+    ui->MovStopped->hide();
     ui->minPos->setReadOnly(true);
     ui->maxPos->setReadOnly(true);
 }
@@ -589,7 +590,7 @@ void MainWindow::ScanMovementStopped()
     {
         debug_out("Get next value!");
         //qDebug() << "Get next value!";
-        this->curStep += this->step_size;
+        this->ScanPosData.curStep /*this->curStep*/ += this->ScanPosData.stepsize;//this->step_size;
         emit this->getNewValue();
         emit this->getNewFFT();
     }
@@ -605,15 +606,16 @@ void MainWindow::getCurValue(double val)
     debug_out("Got new value!");
     //qDebug() << "Got new value!";
     this->dispValues.push_back(qMakePair(this->current_Stepper_Position, val));
-    if(this->current_Stepper_Position + this->step_size < this->stepper_max_limit)
+    if(this->current_Stepper_Position + this->ScanPosData.stepsize /*this->stepper_max_limit*/ < this->ScanPosData.stop /*this->stepper_max_limit*/)
     {
         //this->moveStepperToAbsPosition(this->current_Stepper_Position + this->step_size);
         //qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
-        debug_out("Stepper moving, step " + QString::number(this->curStep) + ", to position " + QString::number(this->current_Stepper_Position) + " with a stepsize of " + QString::number(this->step_size) + "!", 1);
-        this->curStep++;
-        ui->scanProgress->setValue((curStep)/this->steps);
-        this->current_Stepper_Position += this->step_size;
-        double progressValue = (double)(this->current_Stepper_Position - this->stepper_min_limit)/(double)(this->stepper_max_limit - this->stepper_min_limit);
+        debug_out("Stepper moving, step " + QString::number(this->ScanPosData.curStep /*this->curStep*/) + ", to position " + QString::number(this->current_Stepper_Position) + " with a stepsize of " + QString::number(this->ScanPosData.stepsize /*this->stepper_max_limit*/) + "!", 1);
+        this->ScanPosData.curStep++;//nthis->curStep++;
+        //ui->scanProgress->setValue((curStep)/this->steps);
+        ui->scanProgress->setValue(this->ScanPosData.curStep/this->ScanPosData.steps);
+        this->current_Stepper_Position += this->ScanPosData.stepsize /*this->stepper_max_limit*/;
+        double progressValue = (double)(this->current_Stepper_Position - this->ScanPosData.start)/(double)(this->ScanPosData.stop /*this->stepper_max_limit*/ - this->ScanPosData.start);
         ui->scanProgress->setValue((int)(progressValue));
         emit this->moveStepperToAbsPosition(this->current_Stepper_Position);
         //this->getNewValue();
@@ -624,7 +626,7 @@ void MainWindow::getCurValue(double val)
         this->write_unformatted_file(this->dispValues, this->fileName);
         debug_out("Scan finished, moving back to first position!");
         //qDebug() << "Scan finished, moving back to first position!";
-        this->moveStepperToAbsPosition(this->stepper_min_limit);
+        this->moveStepperToAbsPosition(this->ScanPosData.start /*this->stepper_min_limit*/);
         ui->scanProgress->setValue(0);
         if(this->multiAqu == false)
         {
@@ -636,12 +638,13 @@ void MainWindow::getCurValue(double val)
             ui->num_steps->setText("");
             ui->startValue->setText("");
             ui->stopValue->setText("");
-            this->stepper_min_limit = MIN;
-            this->stepper_max_limit = MAX;
+            //this->stepper_min_limit = MIN;
+            //this->stepper_max_limit = MAX;
+            this->ScanPosData.clear();
         }
-        this->step_size = 0;
+        //this->step_size = 0;
         this->scanRun = false;
-        this->curStep = 0;
+        //this->curStep = 0;
         this->replot();
     }
 }
@@ -725,7 +728,7 @@ QPair<double, double> MainWindow::getMaxValue(void)
 
 void MainWindow::on_MovStopped_clicked()
 {
-    this->curStep += this->step_size;
+    this->ScanPosData.curStep /*this->curStep*/ += this->ScanPosData.stepsize;//this->step_size;
     emit this->getNewValue();
     emit this->getNewFFT();
 }
@@ -748,7 +751,7 @@ void MainWindow::on_FullScan_clicked()
     this->dispValues.clear();
     this->on_startScan_clicked();
     this->fileName = ui->startValue->text();
-    this->wlSteps = 0;
+    //this->wlSteps = 0;
 }
 
 void MainWindow::doFullScan()
@@ -758,24 +761,25 @@ void MainWindow::doFullScan()
         debug_out("One or both of the controllers are not connected, exiting!");
         return;
     }
-    if(this->wlSteps + ui->startValue->text().toInt() < ui->stopValue->text().toInt())
+    if(this->ScanPosData.wavelenghtSteps + ui->startValue->text().toInt() < ui->stopValue->text().toInt())
     {
-        debug_out("Scan " + QString::number(this->wlSteps) + " finished!");
+        debug_out("Scan " + QString::number(this->ScanPosData.wavelenghtSteps) + " finished!");
         //qDebug() << "Scan " << this->wlSteps << " finished!";
         this->DispResults.push_back(qMakePair(this->current_Mono_Position, this->getMaxValue()));
-        this->moveMonoToPosition(this->current_Mono_Position + this->wlSteps + 1);
+        this->moveMonoToPosition(this->current_Mono_Position + this->ScanPosData.wavelenghtSteps + 1);
         QThread::sleep(1);
-        this->wlSteps+=1;
-        this->fileName = QString::number(ui->startValue->text().toInt() + this->wlSteps);
+        this->ScanPosData.wavelenghtSteps+=1;
+        this->fileName = QString::number(ui->startValue->text().toInt() + '_' + this->ScanPosData.wavelenghtSteps);
         this->on_startScan_clicked();
     }
     else
     {
         this->multiAqu = false;
         this->write_unformatted_file(this->DispResults);
-        this->wlSteps = 0;
-        this->stepper_max_limit = MAX;
-        this->stepper_min_limit = MIN;
+        //this->wlSteps = 0;
+        //this->stepper_max_limit = MAX;
+        //this->stepper_min_limit = MIN;
+        this->ScanPosData.clear();
         ui->startScan->show();
     }
 }

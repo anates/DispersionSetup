@@ -72,8 +72,8 @@ private:
 
     int current_Measurement;
 
-    int stepper_min_limit = MIN;
-    int stepper_max_limit = MAX;
+    //int stepper_min_limit = MIN;
+    //int stepper_max_limit = MAX;
 
     void write_unformatted_file(const QVector<QPair<double, double> > &Data/*const QMap<double, double> &Data*/, QString fileName);
 
@@ -98,14 +98,14 @@ private:
 
     QString fileName = "";
 
-    int num_steps = 100;
-    double step_size = 0;
-    int steps = 0;
-    int curStep = 0;
+    //int num_steps = 100;
+    //double step_size = 0;
+    //int steps = 0;
+    //int curStep = 0;
 
     scanData ScanPosData;
 
-    int wlSteps = 0;
+    //int wlSteps = 0;
 
     QVector<double> curScanVals;
     QVector<QPair<int, QPair<double, double> > > DispResults;

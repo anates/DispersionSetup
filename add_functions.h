@@ -26,16 +26,18 @@ struct movementData{
 
 
 class scanData{
+public:
     double start;
     double stop;
     int steps;
     double stepsize;
     bool cleared;
     int curStep;
-public:
+    int waveLenght;
+    int wavelenghtSteps;
     scanData();
 
-    void refill(double start, double stop, int steps);
+    void refill(double start, double stop, int steps, int wavelength);
     void clear(void);
 };
 

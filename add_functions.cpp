@@ -21,6 +21,7 @@ void debug_out(QString data, int debug_level)
 
 scanData::scanData()
 {
+    this->waveLenght = 0;
     this->start = 0;
     this->curStep = 0;
     this->stop = 0;
@@ -31,10 +32,11 @@ scanData::scanData()
 
 
 
-void scanData::refill(double start, double stop, int steps)
+void scanData::refill(double start, double stop, int steps, int wavelength)
 {
     if(this->cleared == false)
         this->clear();
+    this->waveLenght = wavelength;
     this->start = start;
     this->stop = stop;
     this->steps = steps;
@@ -50,5 +52,7 @@ void scanData::clear()
     this->steps = 0;
     this->stepsize = 0;
     this->curStep = 0;
+    this->waveLenght = 0;
+    this->wavelenghtSteps = 0;
     this->cleared = true;
 }
