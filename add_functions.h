@@ -41,7 +41,17 @@ public:
     void clear(void);
 };
 
+class stepperInfo{
+public:
+    double curPos;
+    double curSpeed;
+    double estMovementTime;
+    bool initStepper;
 
+    stepperInfo();
+
+    void init();
+};
 
 struct serialPortInfos{
     QString portName;

@@ -56,3 +56,19 @@ void scanData::clear()
     this->wavelenghtSteps = 0;
     this->cleared = true;
 }
+
+stepperInfo::stepperInfo()
+{
+    this->curPos = 0;
+    this->estMovementTime = 0;
+    this->curSpeed = 0;
+    this->initStepper = true;
+}
+
+void stepperInfo::init()
+{
+    this->curPos = 0;
+    this->estMovementTime = 0;
+    this->curSpeed = 0;
+    this->initStepper = true;
+}

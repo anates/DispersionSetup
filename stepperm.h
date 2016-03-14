@@ -32,7 +32,7 @@ public:
     explicit stepperMworker(serialPortInfos data, QObject *parent = 0);
     ~stepperMworker();
 signals:
-    void executeCommand(QString, int);
+    bool executeCommand(QString, int);
     void updatePosition(double);
     void updateMovementTime(double);
     void movementFinished(void);

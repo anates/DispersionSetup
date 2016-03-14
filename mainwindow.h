@@ -58,6 +58,28 @@ signals:
     void maxValue(double val);
 
 private:
+    //QWT tools
+    QPen pen;
+    QwtPlotCurve Curve;
+    QwtPlotGrid Grid;
+    //
+    //Stepper tools
+
+    //double current_Stepper_Position;
+    //double movementTime = 0;
+    stepperInfo StepperData;
+    //
+    //Scan data
+    bool multiAqu = false;
+    bool scanRun = false;
+    QVector<QPair<double, double> > dispValues;
+    QVector<QPair<double, double> > cleanValues;
+    QMap<double, double> plotData;
+    //
+    //Audio tools
+    AudioIn *logDevice = NULL;
+    PaStreamParameters params;
+    //
     QString current_Stepper_Command;
 
     QString current_Mono_Command;
@@ -65,8 +87,7 @@ private:
     QString mono_response;
     QString stepper_response;
 
-    bool multiAqu = false;
-    bool scanRun = false;
+
 
     int current_Mono_Position = 0;
 
@@ -79,20 +100,14 @@ private:
 
     void ScanMovementStopped(void);
 
-    double current_Stepper_Position;
+    void hideStepperControls(int level);
 
-    QPen pen;
-    QwtPlotCurve Curve;
-    QwtPlotGrid Grid;
+    void hideMonoControls(int level);
 
-    QVector<QPair<double, double> > dispValues;
-    QVector<QPair<double, double> > cleanValues;
-    QMap<double, double> plotData;
 
-    AudioIn *logDevice = NULL;
-    PaStreamParameters params;
 
-    double movementTime = 0;
+
+
 
     double curAmplitude = 0;
 
@@ -156,6 +171,18 @@ private slots:
     void on_Mono_Value_1_textChanged(const QString &arg1);
 
     void on_GotoPositionButton_clicked();
+
+    void on_fftCheckBox_clicked();
+
+    void on_homeStepperButton_clicked();
+
+    void on_PosStepperButton_clicked();
+
+    void on_AbsStepperButton_clicked();
+
+    void on_RelStepperButton_clicked();
+
+    void on_Stepper_Value_1_textEdited(const QString &arg1);
 
 public slots:
     void Received_Stepper_Data(QString &data);

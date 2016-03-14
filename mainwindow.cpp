@@ -52,9 +52,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->max_out_of_range->setText("Maximal stepper position out of range, using biggest possible range!");
     ui->min_out_of_range->hide();
     ui->max_out_of_range->hide();
-    ui->ResetMono->hide();
-    ui->GotoPositionButton->hide();
-    ui->curPosMono->hide();
+//    ui->ResetMono->hide();
+//    ui->GotoPositionButton->hide();
+//    ui->curPosMono->hide();
+//    ui->RelStepperButton->hide();
+//    ui->AbsStepperButton->hide();
+//    ui->PosStepperButton->hide();
+    ui->MonoErrorLabel->hide();
+    ui->stepperErrorLabel->hide();
+    this->hideMonoControls(0);
+    this->hideStepperControls(0);
     connect(this->logDevice, &AudioIn::currentAmp, this, &MainWindow::getCurValue);
     connect(this, &MainWindow::getNewValue, this->logDevice, &AudioIn::maxAmplitude);
     connect(this->logDevice, &AudioIn::currentSound, this, &MainWindow::getCurFFT);
@@ -93,6 +100,7 @@ void MainWindow::on_connectMono_clicked()
     ui->connectMono->hide();
     ui->mono_Connections->hide();
     ui->monoPortLabel->hide();
+    this->hideMonoControls(1);
 }
 
 void MainWindow::monoConnectionError(bool error)
@@ -101,10 +109,13 @@ void MainWindow::monoConnectionError(bool error)
     {
         delete this->mono;
         this->mono = NULL;
+        this->hideMonoControls(0);
         ui->ResetMono->hide();
         ui->connectMono->show();
         ui->mono_Connections->show();
         ui->monoPortLabel->show();
+        ui->MonoErrorLabel->show();
+        ui->MonoErrorLabel->setStyleSheet("QLabel { background-color: red; }");
     }
 }
 
@@ -128,6 +139,7 @@ void MainWindow::on_connect_stepper_clicked()
     ui->connect_stepper->hide();
     ui->stepper_connections->hide();
     ui->stepperPortLabel->hide();
+    this->hideStepperControls(1);
 }
 
 void MainWindow::stepperConnectionError(bool error)
@@ -135,6 +147,9 @@ void MainWindow::stepperConnectionError(bool error)
     if(error == false)
     {
         delete this->stepp;
+        this->hideStepperControls(0);
+        ui->stepperErrorLabel->show();
+        ui->stepperErrorLabel->setStyleSheet("QLabel { background-color: red; }");
         this->stepp = NULL;
         ui->connect_stepper->show();
         ui->stepper_connections->show();
@@ -185,8 +200,9 @@ void MainWindow::on_Send_Data_Mono_clicked()
 
 void MainWindow::CurPosUpdate(double pos)
 {
-    this->current_Stepper_Position = pos;
-    ui->stepper_result->setText("Current position is: " + QString::number(this->current_Stepper_Position));
+    //this->StepperData.curPos/*this->current_Stepper_Position*/ = pos;
+    this->StepperData.curPos = pos;
+    ui->stepper_result->setText("Current position is: " + QString::number(this->StepperData.curPos/*this->current_Stepper_Position*/));
 }
 
 
@@ -210,7 +226,7 @@ void MainWindow::on_Send_Data_Stepper_clicked()
         }
         else if(this->current_Stepper_Command == "Get current position")
         {
-            this->current_Stepper_Position = this->stepp->getCurPos();
+            this->StepperData.curPos/*this->current_Stepper_Position*/ = this->stepp->getCurPos();
         }
         else if(this->current_Stepper_Command == "Move absolute")
         {
@@ -221,19 +237,19 @@ void MainWindow::on_Send_Data_Stepper_clicked()
                 {
                     res = emit this->AbsStepper((MAX));
                     if(res)
-                        this->current_Stepper_Position = (MAX);
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ = (MAX);
                 }
                 else if(ui->Stepper_Value_1->text().toDouble() >= MIN && ui->Stepper_Value_1->text().toDouble() <= MAX)
                 {
                     res = emit this->AbsStepper(ui->Stepper_Value_1->text().toDouble());
                     if(res)
-                        this->current_Stepper_Position = ui->Stepper_Value_1->text().toDouble();
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ = ui->Stepper_Value_1->text().toDouble();
                 }
                 else
                 {
                     res = emit this->AbsStepper(MIN);
                     if(res)
-                        this->current_Stepper_Position = MIN;
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ = MIN;
                 }
                 //bool res = emit this->AbsStepper((ui->Stepper_Value_1->text().toDouble() > this->stepper_max_limit?this->stepper_max_limit:ui->Stepper_Value_1->text().toDouble()));
                 if(res == true)
@@ -252,32 +268,32 @@ void MainWindow::on_Send_Data_Stepper_clicked()
                 bool res = true;
                 if(ui->Stepper_Value_1->text().toDouble() > 0)
                 {
-                    if(this->current_Stepper_Position + ui->Stepper_Value_1->text().toDouble() > MAX)
+                    if(this->StepperData.curPos/*this->current_Stepper_Position*/ + ui->Stepper_Value_1->text().toDouble() > MAX)
                     {
-                        res = emit this->RelStepper(MAX - this->current_Stepper_Position);
-                        this->current_Stepper_Position = MAX;
+                        res = emit this->RelStepper(MAX - this->StepperData.curPos/*this->current_Stepper_Position*/);
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ = MAX;
                     }
                     else
                     {
                         res = emit this->RelStepper(ui->Stepper_Value_1->text().toDouble());
-                        this->current_Stepper_Position += ui->Stepper_Value_1->text().toDouble();
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ += ui->Stepper_Value_1->text().toDouble();
                     }
                 }
                 else
                 {
-                    if(this->current_Stepper_Position + ui->Stepper_Value_1->text().toDouble() < MIN)
+                    if(this->StepperData.curPos/*this->current_Stepper_Position*/ + ui->Stepper_Value_1->text().toDouble() < MIN)
                     {
-                        res = emit this->RelStepper(MIN - this->current_Stepper_Position);
-                        this->current_Stepper_Position = MIN;
+                        res = emit this->RelStepper(MIN - this->StepperData.curPos/*this->current_Stepper_Position*/);
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ = MIN;
                     }
                     else
                     {
                         res = emit this->RelStepper(ui->Stepper_Value_1->text().toDouble());
-                        this->current_Stepper_Position += ui->Stepper_Value_1->text().toDouble();
+                        this->StepperData.curPos/*this->current_Stepper_Position*/ += ui->Stepper_Value_1->text().toDouble();
                     }
 
                 }
-                //bool res = emit this->RelStepper(((ui->Stepper_Value_1->text().toDouble() > 0)?((ui->Stepper_Value_1->text().toDouble() + this->current_Stepper_Position > this->stepper_max_limit?(this->stepper_max_limit-ui->Stepper_Value_1->text().toDouble()):ui->Stepper_Value_1->text()):(this->current_Stepper_Position - ui->Stepper_Value_1->text().toDouble() < this->stepper_min_limit)?this->current_Stepper_Position - this->stepper_min_limit:ui->Stepper_Value_1->text().toDouble())));
+                //bool res = emit this->RelStepper(((ui->Stepper_Value_1->text().toDouble() > 0)?((ui->Stepper_Value_1->text().toDouble() + this->StepperData.curPos/*this->current_Stepper_Position*/ > this->stepper_max_limit?(this->stepper_max_limit-ui->Stepper_Value_1->text().toDouble()):ui->Stepper_Value_1->text()):(this->StepperData.curPos/*this->current_Stepper_Position*/ - ui->Stepper_Value_1->text().toDouble() < this->stepper_min_limit)?this->StepperData.curPos/*this->current_Stepper_Position*/ - this->stepper_min_limit:ui->Stepper_Value_1->text().toDouble())));
 
                 if(res == true)
                     debug_out("Success!");
@@ -357,12 +373,12 @@ void MainWindow::Received_Stepper_Data(QString &data)
     if(this->stepper_response.contains("PT"))
     {
         QList<QString> response = this->stepper_response.split("PT");
-        this->movementTime = response.length() == 2?response[1].toDouble():0;
+        this->StepperData.estMovementTime /*this->movementTime*/ = response.length() == 2?response[1].toDouble():0;
     }
     else if(this->stepper_response.contains("TP"))
     {
         QList<QString> response = this->stepper_response.split("TP");
-        this->current_Stepper_Position = response.length() == 2?response[1].toDouble():0;
+        this->StepperData.curPos/*this->current_Stepper_Position*/ = response.length() == 2?response[1].toDouble():0;
     }
 }
 
@@ -455,11 +471,11 @@ void MainWindow::replot()
 
 void MainWindow::homeStepper()
 {
-//    this->getEstimatedMovementTime(this->current_Stepper_Position);
+//    this->getEstimatedMovementTime(this->StepperData.curPos/*this->current_Stepper_Position*/);
 //    QThread::msleep(100);
-//    this->current_Stepper_Position = 0;
+//    this->StepperData.curPos/*this->current_Stepper_Position*/ = 0;
 //    emit this->executeCommandStepper("1OR?", 0);
-//    QThread::sleep(this->movementTime);
+//    QThread::sleep(this->StepperData.estMovementTime/*this->movementTime*/);
     debug_out("In main: Home()");
     //qDebug() << "In main: Home()";
     emit this->homeMirror();
@@ -476,10 +492,10 @@ void MainWindow::on_startScan_clicked()
     //Determine time to target
     this->scanRun = true;
     this->current_Measurement++;
-    this->movementTime = 0;
+    this->StepperData.estMovementTime/*this->movementTime*/ = 0;
     this->dispValues.clear();
-//    this->getEstimatedMovementTime(fabs(this->current_Stepper_Position-this->stepper_min_limit));
-//    qDebug() << "Movement time for distance " << this->current_Stepper_Position-this->stepper_min_limit << " is: " << this->movementTime;
+//    this->getEstimatedMovementTime(fabs(this->StepperData.curPos/*this->current_Stepper_Position*/-this->stepper_min_limit));
+//    qDebug() << "Movement time for distance " << this->StepperData.curPos/*this->current_Stepper_Position*/-this->stepper_min_limit << " is: " << this->StepperData.estMovementTime/*this->movementTime*/;
 //    QThread::msleep(100);
     double min = MIN, max = MAX;
     if(ui->minPos->text().toDouble() > ui->maxPos->text().toDouble())
@@ -510,15 +526,15 @@ void MainWindow::on_startScan_clicked()
     //this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
     ui->size_steps->setText(QString::number(this->ScanPosData.stepsize));
     debug_out("Running a short scan from " + QString::number(this->ScanPosData.start) + " to " + QString::number(this->ScanPosData.stop) + " with " + QString::number(this->ScanPosData.steps) + " at the wavelength of " + QString::number(this->ScanPosData.waveLenght), 1);
-//    if(this->movementTime != 0)
+//    if(this->StepperData.estMovementTime/*this->movementTime*/ != 0)
 //    {
 //        this->homeStepper();
 //        qDebug() << "Waiting till home in automat!";
 //        QThread::sleep(3);
-//        this->getEstimatedMovementTime(fabs(this->current_Stepper_Position-this->stepper_min_limit));
+//        this->getEstimatedMovementTime(fabs(this->StepperData.curPos/*this->current_Stepper_Position*/-this->stepper_min_limit));
 //        QThread::msleep(100);
 //        this->moveStepperToAbsPosition(this->stepper_min_limit);
-//        QThread::sleep((this->movementTime));
+//        QThread::sleep((this->StepperData.estMovementTime/*this->movementTime*/));
 //    }
 //    else
 //    {
@@ -566,7 +582,7 @@ void MainWindow::moveStepperToAbsPosition(double pos)
 //    if((newPosition >= this->stepper_min_limit) && (newPosition <= this->stepper_max_limit))
 //    {
 //        //emit this->executeCommandStepper("1PA" + QString::number(newPosition), 0);
-//        this->current_Stepper_Position = newPosition;
+//        this->StepperData.curPos/*this->current_Stepper_Position*/ = newPosition;
 //    }
     emit this->AbsStepper(pos);
 }
@@ -575,9 +591,9 @@ void MainWindow::moveStepperToRelPosition(double pos)
 {
 //    double newPosition = 0;
 //    newPosition = pos;
-//    if(this->current_Stepper_Position+newPosition <= this->stepper_max_limit && this->current_Stepper_Position + newPosition >= this->stepper_min_limit)
+//    if(this->StepperData.curPos/*this->current_Stepper_Position*/+newPosition <= this->stepper_max_limit && this->StepperData.curPos/*this->current_Stepper_Position*/ + newPosition >= this->stepper_min_limit)
 //    {
-//        this->current_Stepper_Position = newPosition;
+//        this->StepperData.curPos/*this->current_Stepper_Position*/ = newPosition;
 //        //emit this->executeCommandStepper("1PR" + QString::number(newPosition), 0);
 //    }
     emit this->RelStepper(pos);
@@ -605,19 +621,19 @@ void MainWindow::getCurValue(double val)
     //this->getMaxValue(val);
     debug_out("Got new value!");
     //qDebug() << "Got new value!";
-    this->dispValues.push_back(qMakePair(this->current_Stepper_Position, val));
-    if(this->current_Stepper_Position + this->ScanPosData.stepsize /*this->stepper_max_limit*/ < this->ScanPosData.stop /*this->stepper_max_limit*/)
+    this->dispValues.push_back(qMakePair(this->StepperData.curPos/*this->current_Stepper_Position*/, val));
+    if(this->StepperData.curPos/*this->current_Stepper_Position*/ + this->ScanPosData.stepsize /*this->stepper_max_limit*/ < this->ScanPosData.stop /*this->stepper_max_limit*/)
     {
-        //this->moveStepperToAbsPosition(this->current_Stepper_Position + this->step_size);
-        //qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->current_Stepper_Position << " with a stepsize of " << this->step_size << "!";
-        debug_out("Stepper moving, step " + QString::number(this->ScanPosData.curStep /*this->curStep*/) + ", to position " + QString::number(this->current_Stepper_Position) + " with a stepsize of " + QString::number(this->ScanPosData.stepsize /*this->stepper_max_limit*/) + "!", 1);
+        //this->moveStepperToAbsPosition(this->StepperData.curPos/*this->current_Stepper_Position*/ + this->step_size);
+        //qDebug() << "Stepper moving, step " << this->curStep << ", to position " << this->StepperData.curPos/*this->current_Stepper_Position*/ << " with a stepsize of " << this->step_size << "!";
+        debug_out("Stepper moving, step " + QString::number(this->ScanPosData.curStep /*this->curStep*/) + ", to position " + QString::number(this->StepperData.curPos/*this->current_Stepper_Position*/) + " with a stepsize of " + QString::number(this->ScanPosData.stepsize /*this->stepper_max_limit*/) + "!", 1);
         this->ScanPosData.curStep++;//nthis->curStep++;
         //ui->scanProgress->setValue((curStep)/this->steps);
         ui->scanProgress->setValue(this->ScanPosData.curStep/this->ScanPosData.steps);
-        this->current_Stepper_Position += this->ScanPosData.stepsize /*this->stepper_max_limit*/;
-        double progressValue = (double)(this->current_Stepper_Position - this->ScanPosData.start)/(double)(this->ScanPosData.stop /*this->stepper_max_limit*/ - this->ScanPosData.start);
+        this->StepperData.curPos/*this->current_Stepper_Position*/ += this->ScanPosData.stepsize /*this->stepper_max_limit*/;
+        double progressValue = (double)(this->StepperData.curPos/*this->current_Stepper_Position*/ - this->ScanPosData.start)/(double)(this->ScanPosData.stop /*this->stepper_max_limit*/ - this->ScanPosData.start);
         ui->scanProgress->setValue((int)(progressValue));
-        emit this->moveStepperToAbsPosition(this->current_Stepper_Position);
+        emit this->moveStepperToAbsPosition(this->StepperData.curPos/*this->current_Stepper_Position*/);
         //this->getNewValue();
     }
     else
@@ -651,7 +667,7 @@ void MainWindow::getCurValue(double val)
 
 void MainWindow::getCurFFT(QVector<double> val)
 {
-    QString filename = QString::number(this->current_Mono_Position) + QString::number(this->current_Stepper_Position) + ".txt";
+    QString filename = QString::number(this->current_Mono_Position) + QString::number(this->StepperData.curPos/*this->current_Stepper_Position*/) + ".txt";
     QFile file(filename);
     if(!file.open(QIODevice::WriteOnly))
     {
@@ -730,7 +746,8 @@ void MainWindow::on_MovStopped_clicked()
 {
     this->ScanPosData.curStep /*this->curStep*/ += this->ScanPosData.stepsize;//this->step_size;
     emit this->getNewValue();
-    emit this->getNewFFT();
+    if(ui->fftCheckBox->isChecked())
+        emit this->getNewFFT();
 }
 
 void MainWindow::on_FullScan_clicked()
@@ -790,6 +807,7 @@ void MainWindow::on_ResetMono_clicked()
     ui->curPosMono->show();
     this->current_Mono_Position = 0;
     ui->curWL->setText("Monochromator reset!");
+    ui->ResetMono->hide();
 }
 
 void MainWindow::on_Mono_Value_1_textChanged(const QString &arg1)
@@ -807,7 +825,257 @@ void MainWindow::on_Mono_Value_1_textChanged(const QString &arg1)
 
 void MainWindow::on_GotoPositionButton_clicked()
 {
+    emit this->resetMono();
+    //Sleep?
     emit this->moveMonoToPosition(ui->Mono_Value_1->text().toInt());
     this->current_Mono_Position = ui->Mono_Value_1->text().toInt();
     ui->curWL->setText(QString::number(this->current_Mono_Position));
+}
+
+void MainWindow::on_fftCheckBox_clicked()
+{
+
+}
+
+void MainWindow::on_homeStepperButton_clicked()
+{
+    emit this->homeStepper();
+}
+
+
+void MainWindow::on_PosStepperButton_clicked()
+{
+    if(this->stepp->getCurPos() == false)
+        ui->stepper_result->setText("Problem with aquiring data from stepper, please verify connection!");
+
+}
+
+void MainWindow::on_AbsStepperButton_clicked()
+{
+    if(ui->Stepper_Value_1->text().isEmpty() == false)
+    {
+        bool res = true;
+        if(ui->Stepper_Value_1->text().toDouble() > MAX)
+        {
+            res = emit this->AbsStepper((MAX));
+            if(res)
+                this->StepperData.curPos/*this->current_Stepper_Position*/ = (MAX);
+        }
+        else if(ui->Stepper_Value_1->text().toDouble() >= MIN && ui->Stepper_Value_1->text().toDouble() <= MAX)
+        {
+            res = emit this->AbsStepper(ui->Stepper_Value_1->text().toDouble());
+            if(res)
+                this->StepperData.curPos/*this->current_Stepper_Position*/ = ui->Stepper_Value_1->text().toDouble();
+        }
+        else
+        {
+            res = emit this->AbsStepper(MIN);
+            if(res)
+                this->StepperData.curPos/*this->current_Stepper_Position*/ = MIN;
+        }
+        if(res == true)
+            debug_out("Success!");
+        else
+            debug_out("Failure!");
+    }
+}
+
+void MainWindow::on_RelStepperButton_clicked()
+{
+    if(ui->Stepper_Value_1->text().isEmpty() == false)
+    {
+        bool res = true;
+        if(ui->Stepper_Value_1->text().toDouble() > 0)
+        {
+            if(this->StepperData.curPos/*this->current_Stepper_Position*/ + ui->Stepper_Value_1->text().toDouble() > MAX)
+            {
+                res = emit this->RelStepper(MAX - this->StepperData.curPos/*this->current_Stepper_Position*/);
+                this->StepperData.curPos/*this->current_Stepper_Position*/ = MAX;
+            }
+            else
+            {
+                res = emit this->RelStepper(ui->Stepper_Value_1->text().toDouble());
+                this->StepperData.curPos/*this->current_Stepper_Position*/ += ui->Stepper_Value_1->text().toDouble();
+            }
+        }
+        else
+        {
+            if(this->StepperData.curPos/*this->current_Stepper_Position*/ + ui->Stepper_Value_1->text().toDouble() < MIN)
+            {
+                res = emit this->RelStepper(MIN - this->StepperData.curPos/*this->current_Stepper_Position*/);
+                this->StepperData.curPos/*this->current_Stepper_Position*/ = MIN;
+            }
+            else
+            {
+                res = emit this->RelStepper(ui->Stepper_Value_1->text().toDouble());
+                this->StepperData.curPos/*this->current_Stepper_Position*/ += ui->Stepper_Value_1->text().toDouble();
+            }
+
+        }
+        //bool res = emit this->RelStepper(((ui->Stepper_Value_1->text().toDouble() > 0)?((ui->Stepper_Value_1->text().toDouble() + this->StepperData.curPos/*this->current_Stepper_Position*/ > this->stepper_max_limit?(this->stepper_max_limit-ui->Stepper_Value_1->text().toDouble()):ui->Stepper_Value_1->text()):(this->StepperData.curPos/*this->current_Stepper_Position*/ - ui->Stepper_Value_1->text().toDouble() < this->stepper_min_limit)?this->StepperData.curPos/*this->current_Stepper_Position*/ - this->stepper_min_limit:ui->Stepper_Value_1->text().toDouble())));
+
+        if(res == true)
+            debug_out("Success!");
+        //qDebug() << "Success!";
+        else
+            debug_out("Failure!");
+        //qDebug() << "Failure!";
+    }
+}
+
+void MainWindow::on_Stepper_Value_1_textEdited(const QString &arg1)
+{
+    if(arg1.isEmpty())
+    {
+        ui->RelStepperButton->hide();
+        ui->AbsStepperButton->hide();
+    }
+    else
+    {
+        ui->RelStepperButton->show();
+        ui->AbsStepperButton->show();
+    }
+}
+
+void MainWindow::hideStepperControls(int level)
+{
+    switch(level)
+    {
+    case 0://Lowest level, everything gone before connecting
+        ui->AbsStepperButton->hide();
+        ui->RelStepperButton->hide();
+        ui->stepper_command->hide();
+        ui->label_6->hide();
+        ui->homeStepperButton->hide();
+        ui->PosStepperButton->hide();
+        ui->label_8->hide();
+        ui->Stepper_Value_1->hide();
+        ui->label_5->hide();
+        ui->stepper_result->hide();
+        ui->Send_Data_Stepper->hide();
+        ui->connect_stepper->show();
+        ui->stepperPortLabel->show();
+        ui->stepper_connections->show();
+        break;
+    case 1://Connection positive, no command send yet
+        ui->AbsStepperButton->hide();
+        ui->RelStepperButton->hide();
+        ui->stepper_command->show();
+        ui->label_6->show();
+        ui->homeStepperButton->show();
+        ui->PosStepperButton->show();
+        ui->label_8->show();
+        ui->Stepper_Value_1->show();
+        ui->label_5->show();
+        ui->stepper_result->show();
+        ui->Send_Data_Stepper->show();
+        ui->connect_stepper->hide();
+        ui->stepperPortLabel->hide();
+        ui->stepper_connections->hide();
+        ui->stepperErrorLabel->hide();
+        break;
+    case 2://Initcommand send, normal working case
+        ui->AbsStepperButton->show();
+        ui->RelStepperButton->show();
+        ui->stepper_command->show();
+        ui->label_6->show();
+        ui->homeStepperButton->show();
+        ui->PosStepperButton->show();
+        ui->label_8->show();
+        ui->Stepper_Value_1->show();
+        ui->label_5->show();
+        ui->stepper_result->show();
+        ui->Send_Data_Stepper->show();
+        ui->connect_stepper->hide();
+        ui->stepperPortLabel->hide();
+        ui->stepper_connections->hide();
+        break;
+    default://Not sure where I am
+        ui->AbsStepperButton->hide();
+        ui->RelStepperButton->hide();
+        ui->stepper_command->hide();
+        ui->label_6->hide();
+        ui->homeStepperButton->hide();
+        ui->PosStepperButton->hide();
+        ui->label_8->hide();
+        ui->Stepper_Value_1->hide();
+        ui->label_5->hide();
+        ui->stepper_result->hide();
+        ui->Send_Data_Stepper->hide();
+        ui->connect_stepper->show();
+        ui->stepperPortLabel->show();
+        ui->stepper_connections->show();
+        break;
+    }
+
+}
+
+void MainWindow::hideMonoControls(int level)
+{
+    switch(level)
+    {
+    case 0://Before connection
+        ui->connectMono->show();
+        ui->monoConnections->show();
+        ui->monoPortLabel->show();
+        ui->label_4->hide();
+        ui->mono_command->hide();
+        ui->label_9->hide();
+        ui->mono_result->hide();
+        ui->Mono_Value_1->hide();
+        ui->Send_Data_Mono->hide();
+        ui->ResetMono->hide();
+        ui->GotoPositionButton->hide();
+        ui->curPosMono->hide();
+        ui->label_7->hide();
+
+        break;
+    case 1://After connection, before init
+        ui->connectMono->hide();
+        ui->monoConnections->hide();
+        ui->monoPortLabel->hide();
+        ui->label_4->show();
+        ui->mono_command->show();
+        ui->label_9->hide();
+        ui->mono_result->show();
+        ui->Mono_Value_1->hide();
+        ui->Send_Data_Mono->show();
+        ui->ResetMono->show();
+        ui->GotoPositionButton->hide();
+        ui->curPosMono->show();
+        ui->label_7->show();
+        ui->MonoErrorLabel->hide();
+        break;
+    case 2://Normal operation mode
+        ui->connectMono->hide();
+        ui->monoConnections->hide();
+        ui->monoPortLabel->hide();
+        ui->label_4->show();
+        ui->mono_command->show();
+        ui->label_9->show();
+        ui->mono_result->show();
+        ui->Mono_Value_1->show();
+        ui->Send_Data_Mono->show();
+        ui->ResetMono->show();
+        ui->GotoPositionButton->show();
+        ui->curPosMono->show();
+        ui->label_7->show();
+        break;
+    default:
+        ui->connectMono->show();
+        ui->monoConnections->show();
+        ui->monoPortLabel->show();
+        ui->label_4->hide();
+        ui->mono_command->hide();
+        ui->label_9->hide();
+        ui->mono_result->hide();
+        ui->Mono_Value_1->hide();
+        ui->Send_Data_Mono->hide();
+        ui->ResetMono->hide();
+        ui->GotoPositionButton->hide();
+        ui->curPosMono->hide();
+        ui->label_7->hide();
+        break;
+
+    }
 }

@@ -94,7 +94,7 @@ void serial_controller_worker::process_data()
 {
 }
 
-void serial_controller_worker::transaction(const QString &request, double delay)
+bool serial_controller_worker::transaction(const QString &request, double delay)
 {
 //    qDebug() << "TransAction started!";
     this->delay_write = delay;
@@ -117,6 +117,10 @@ void serial_controller_worker::transaction(const QString &request, double delay)
     int status = serial->write(requestData);
     //qDebug() << "Writestatus is: " + QString::number(status);
     debug_out("Writestatus is: " + QString::number(status));
+    if(status == -1)
+        return false;
+    else
+        return true;
 }
 
 
@@ -171,11 +175,11 @@ serial_controller::~serial_controller()
 //        delete this->serial;
 }
 
-void serial_controller::transaction(const QString &request, double delay)
+bool serial_controller::transaction(const QString &request, double delay)
 {
     //qDebug() << "Sent new transaction request " << request << " to worker!";
     debug_out("Sent new transaction request " + request + " to worker!");
-    emit this->newTransaction(request, delay);
+    return emit this->newTransaction(request, delay);
 //    QByteArray requestData = request.toLocal8Bit();
 //    qDebug() << "Writing data: " << requestData;
 //    serial->write(requestData);

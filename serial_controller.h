@@ -33,7 +33,7 @@ private:
     void convertStringToHex(const QString &input, QByteArray &output);
 
 public slots:
-    void transaction(const QString &request, double delay);
+    bool transaction(const QString &request, double delay);
     void read_data(void);
     bool connectToSerial(void);
 signals:
@@ -81,12 +81,12 @@ public:
     ~serial_controller();
 
 public slots:
-    void transaction(const QString &request, double delay);
+    bool transaction(const QString &request, double delay);
     void response_slot(QString response);
     void read_data(void);
     void connectError(bool errVal);
 signals:
-    void newTransaction(const QString &request, double delay);
+    bool newTransaction(const QString &request, double delay);
     void response(QString s);
     void error(const QString &s);
     void timeout(const QString &s);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>825</width>
-    <height>900</height>
+    <height>927</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,32 +25,32 @@
         <string>Stepper Motor</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>Command</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
-         <widget class="QComboBox" name="stepper_connections"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="stepperPortLabel">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_8">
           <property name="text">
-           <string>Port</string>
+           <string>Additional values</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="2">
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Result</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QComboBox" name="stepper_command"/>
+        </item>
+        <item row="7" column="2">
          <widget class="QLineEdit" name="stepper_result"/>
-        </item>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="Send_Data_Stepper">
-          <property name="text">
-           <string>Send</string>
-          </property>
-         </widget>
         </item>
         <item row="1" column="2">
          <widget class="QPushButton" name="connect_stepper">
@@ -59,27 +59,66 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Result</string>
-          </property>
-         </widget>
+        <item row="0" column="2">
+         <widget class="QComboBox" name="stepper_connections"/>
         </item>
-        <item row="2" column="2">
-         <widget class="QComboBox" name="stepper_command"/>
-        </item>
-        <item row="3" column="2">
+        <item row="4" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLineEdit" name="Stepper_Value_1"/>
           </item>
          </layout>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_8">
+        <item row="5" column="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="homeStepperButton">
+            <property name="text">
+             <string>Home Stepper</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="AbsStepperButton">
+            <property name="text">
+             <string>Move absolute</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="RelStepperButton">
+            <property name="text">
+             <string>Move relative</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="PosStepperButton">
+            <property name="text">
+             <string>Get position</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="stepperPortLabel">
           <property name="text">
-           <string>Additional values</string>
+           <string>Port</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QPushButton" name="Send_Data_Stepper">
+          <property name="text">
+           <string>Send</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="stepperErrorLabel">
+          <property name="text">
+           <string>Error, port could not be opened</string>
           </property>
          </widget>
         </item>
@@ -90,62 +129,17 @@
         <string>Monochromator</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLabel" name="monoPortLabel">
-          <property name="text">
-           <string>Port</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="mono_Connections"/>
         </item>
-        <item row="1" column="1">
-         <widget class="QPushButton" name="connectMono">
-          <property name="text">
-           <string>Connect</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Command</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QComboBox" name="mono_command"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Wavelength [nm]</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
+        <item row="4" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLineEdit" name="Mono_Value_1"/>
           </item>
          </layout>
         </item>
-        <item row="4" column="1">
-         <widget class="QPushButton" name="Send_Data_Mono">
-          <property name="text">
-           <string>Send</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
+        <item row="6" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QPushButton" name="ResetMono">
@@ -170,15 +164,67 @@
           </item>
          </layout>
         </item>
-        <item row="6" column="0">
+        <item row="0" column="0">
+         <widget class="QLabel" name="monoPortLabel">
+          <property name="text">
+           <string>Port</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="mono_command"/>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="mono_result"/>
+        </item>
+        <item row="7" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>Result</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="mono_result"/>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="connectMono">
+          <property name="text">
+           <string>Connect</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QPushButton" name="Send_Data_Mono">
+          <property name="text">
+           <string>Send</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Wavelength [nm]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Command</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="MonoErrorLabel">
+          <property name="text">
+           <string>Error, port could not be opened!</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -312,6 +358,13 @@
            <widget class="QLabel" name="label_17">
             <property name="text">
              <string>Current wavelenght [nm]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="1">
+           <widget class="QCheckBox" name="fftCheckBox">
+            <property name="text">
+             <string>Generate FFT data</string>
             </property>
            </widget>
           </item>

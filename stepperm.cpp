@@ -91,20 +91,25 @@ void stepperMworker::newData(QString data)
 bool stepperMworker::waitMovement(double distance)
 {
     this->movementTimeCheck = true;
-    emit this->executeCommand("1PT"+QString::number(distance), 0);
-    this->start_timer();
-    int i = 0;
-    //qDebug() << "Waiting for suitable answer of moving time!";
-    debug_out("Waiting for suitable answer of moving time!", 1);
-    while(i < 1000 && this->movementTimeCheck == true)
-    {
-        i++;
-        QThread::msleep(5);
-    }
-    if(this->movementTimeCheck == true)
+    bool writeStatus = emit this->executeCommand("1PT"+QString::number(distance), 0);
+    if(writeStatus == false)
         return false;
     else
-        return true;
+    {
+        this->start_timer();
+        int i = 0;
+        //qDebug() << "Waiting for suitable answer of moving time!";
+        debug_out("Waiting for suitable answer of moving time!", 1);
+        while(i < 1000 && this->movementTimeCheck == true)
+        {
+            i++;
+            QThread::msleep(5);
+        }
+        if(this->movementTimeCheck == true)
+            return false;
+        else
+            return true;
+    }
 }
 
 void stepperMworker::moveAbsolute(double pos)
