@@ -96,11 +96,11 @@ void MainWindow::on_connectMono_clicked()
     connect(this, &MainWindow::getCurrentPos, this->mono, &monoChrom::getCurrentWL);
     connect(this->mono, &monoChrom::connectionError, this, &MainWindow::monoConnectionError);
 
-    ui->ResetMono->show();
-    ui->connectMono->hide();
-    ui->mono_Connections->hide();
-    ui->monoPortLabel->hide();
-    //this->hideMonoControls(1);
+    //ui->ResetMono->show();
+    //ui->connectMono->hide();
+    //ui->mono_Connections->hide();
+    //ui->monoPortLabel->hide();
+    this->hideMonoControls(1);
 }
 
 void MainWindow::monoConnectionError(bool error)
