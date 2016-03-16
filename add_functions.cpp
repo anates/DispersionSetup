@@ -63,12 +63,15 @@ stepperInfo::stepperInfo()
     this->estMovementTime = 0;
     this->curSpeed = 0;
     this->initStepper = true;
+    this->connected = false;
 }
 
-void stepperInfo::init()
+void stepperInfo::init(bool connected)
 {
     this->curPos = 0;
     this->estMovementTime = 0;
     this->curSpeed = 0;
     this->initStepper = true;
+    this->connected = connected;
+
 }

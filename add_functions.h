@@ -47,10 +47,11 @@ public:
     double curSpeed;
     double estMovementTime;
     bool initStepper;
+    bool connected;
 
     stepperInfo();
 
-    void init();
+    void init(bool connected);
 };
 
 struct serialPortInfos{

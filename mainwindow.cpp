@@ -140,6 +140,7 @@ void MainWindow::on_connect_stepper_clicked()
     ui->connect_stepper->hide();
     ui->stepper_connections->hide();
     ui->stepperPortLabel->hide();
+    this->StepperData.connected = true;
     this->hideStepperControls(1);
 }
 
@@ -817,11 +818,13 @@ void MainWindow::on_homeStepperButton_clicked()
     emit this->homeStepper();
 }
 
-
 void MainWindow::on_PosStepperButton_clicked()
 {
     if(this->stepp->getCurPos() == false)
-        ui->stepper_result->setText("Problem with aquiring data from stepper, please verify connection!");
+        if(this->StepperData.connected == false)
+            ui->stepper_result->setText("Problem with aquiring data from stepper, please verify connection!");
+        else
+            ui->stepper_result->setText("Please wait until the last command has finished, then retry!");
 
 }
 
@@ -902,11 +905,15 @@ void MainWindow::on_Stepper_Value_1_textEdited(const QString &arg1)
 {
     if(arg1.isEmpty())
     {
+        ui->homeStepperButton->show();
         ui->RelStepperButton->hide();
         ui->AbsStepperButton->hide();
+        ui->PosStepperButton->show();
     }
     else
     {
+        ui->PosStepperButton->show();
+        ui->homeStepperButton->show();
         ui->RelStepperButton->show();
         ui->AbsStepperButton->show();
     }
@@ -1030,7 +1037,7 @@ void MainWindow::hideMonoControls(int level)
     case 2://Normal operation mode
         qDebug() << "Level of hiding for mono set to " + QString::number(level) << "!";
         ui->connectMono->hide();
-        ui->monoConnections->hide();
+        //ui->monoConnections->hide();
         ui->monoPortLabel->hide();
         ui->label_4->show();
         ui->mono_command->show();
