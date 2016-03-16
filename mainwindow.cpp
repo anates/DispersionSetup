@@ -126,6 +126,7 @@ void MainWindow::on_connect_stepper_clicked()
 //    this->stepper = new serial_controller(list[ui->stepper_connections->currentIndex()].portName(), 1000, 57600, 1, false, false, false, false);
 //    connect(this->stepper, &serial_controller::response, this, &MainWindow::Received_Stepper_Data);
 //    connect(this, &MainWindow::executeCommandStepper, this->stepper, &serial_controller::transaction);
+    this->hideStepperControls(1);
     this->stepp = new stepperM(list[ui->stepper_connections->currentIndex()].portName(), MIN, MAX);
     connect(this, &MainWindow::AbsStepper, this->stepp, &stepperM::moveAbs);
     connect(this, &MainWindow::RelStepper, this->stepp, &stepperM::moveRel);
@@ -135,7 +136,7 @@ void MainWindow::on_connect_stepper_clicked()
     connect(this->stepp, &stepperM::curPosUpdate, this, &MainWindow::CurPosUpdate);
     connect(this->stepp, &stepperM::movementFinished, this, &MainWindow::ScanMovementStopped);
     connect(this->stepp, &stepperM::connErr, this, &MainWindow::stepperConnectionError);
-    this->hideStepperControls(1);
+
     ui->connect_stepper->hide();
     ui->stepper_connections->hide();
     ui->stepperPortLabel->hide();
