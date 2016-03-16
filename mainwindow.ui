@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="monoConnections">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="StepperMotorSettings">
        <attribute name="title">
@@ -410,12 +410,33 @@
         <item row="2" column="0">
          <widget class="QLabel" name="label_18">
           <property name="text">
-           <string>Speed</string>
+           <string>Speed [units/s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPushButton" name="FTIRScan">
+          <property name="text">
+           <string>Run Scan</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="FTIR_speed"/>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLineEdit" name="FTIR_speed"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Accuracy</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="FTIR_accuracy"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

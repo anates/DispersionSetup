@@ -6,7 +6,7 @@
 #include <fftw++.h>
 #include <Array.h>
 #include "add_functions.h"
-#define SAMPLE_RATE  (44100)
+#define SAMPLE_RATE  (96000)
 #define FRAMES_PER_BUFFER (512)
 #define NUM_CHANNELS    (1)
 /* #define DITHER_FLAG     (paDitherOff) */

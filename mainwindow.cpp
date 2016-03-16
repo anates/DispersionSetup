@@ -578,7 +578,8 @@ void MainWindow::moveStepperToRelPosition(double pos)
 
 void MainWindow::ScanMovementStopped()
 {
-    if(this->scanRun)
+    //if(this->scanRun)
+    if(this->curState == SingleScan)
     {
         debug_out("Get next value!");
         //qDebug() << "Get next value!";
@@ -587,8 +588,11 @@ void MainWindow::ScanMovementStopped()
         if(ui->fftCheckBox->isChecked())
             emit this->getNewFFT();
     }
-    else if(this->multiAqu)
+   // else if(this->multiAqu)
+    else if(this->curState == FullScan)
         this->doFullScan();
+    else if(this->curState == FTIR)
+        qDebug() << "FTIR not implemented yet!";
     debug_out("Scan stopped!");
     //qDebug() << "Scan stopped!";
 }
@@ -1066,5 +1070,47 @@ void MainWindow::hideMonoControls(int level)
         ui->label_7->hide();
         break;
 
+    }
+}
+
+void MainWindow::on_FTIRScan_clicked()
+{
+    if(this->stepp == NULL || this->mono == NULL)
+    {
+        debug_out("One or both of the controllers are not connected, exiting!");
+        return;
+    }
+    if(ui->FTIR_start->text().isEmpty() || ui->FTIR_stop->text().isEmpty() || ui->FTIR_speed->text().isEmpty())
+    {
+        debug_out("Not all needed values are filled, please try again!");
+        return;
+    }
+    this->curState = FTIR;
+
+}
+
+void MainWindow::on_FTIR_speed_textEdited(const QString &arg1)
+{
+    qDebug() << arg1;
+    QRegExp re("[-+]?[0-9]*.[0-9]*");  // a digit (\d), zero or more times (*)
+    if (re.exactMatch(arg1))
+        ui->FTIR_accuracy->setText("Not implemented yet");
+    else
+    {
+        ui->FTIR_speed->setText("No strings allowed!");
+        ui->FTIR_accuracy->setText("No strings allowed!");
+    }
+}
+
+void MainWindow::on_FTIR_accuracy_textEdited(const QString &arg1)
+{
+    qDebug() << arg1;
+    QRegExp re("[-+]?[0-9]*.[0-9]*");  // a digit (\d), zero or more times (*)
+    if (re.exactMatch(arg1))
+        ui->FTIR_speed->setText("Not implemented yet");
+    else
+    {
+        ui->FTIR_accuracy->setText("No strings allowed!");
+        ui->FTIR_speed->setText("No strings allowed!");
     }
 }

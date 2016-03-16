@@ -23,6 +23,8 @@
 
 #define UNUSED(x) (void)(x)
 
+enum ScanState {Movement, SingleScan, FullScan, FTIR};
+
 namespace Ui {
 class MainWindow;
 }
@@ -75,6 +77,7 @@ private:
     QVector<QPair<double, double> > dispValues;
     QVector<QPair<double, double> > cleanValues;
     QMap<double, double> plotData;
+    ScanState curState;
     //
     //Audio tools
     AudioIn *logDevice = NULL;
@@ -183,6 +186,12 @@ private slots:
     void on_RelStepperButton_clicked();
 
     void on_Stepper_Value_1_textEdited(const QString &arg1);
+
+    void on_FTIRScan_clicked();
+
+    void on_FTIR_speed_textEdited(const QString &arg1);
+
+    void on_FTIR_accuracy_textEdited(const QString &arg1);
 
 public slots:
     void Received_Stepper_Data(QString &data);
