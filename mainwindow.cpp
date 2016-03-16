@@ -1013,7 +1013,7 @@ void MainWindow::hideMonoControls(int level)
         qDebug() << "Level of hiding for mono set to " + QString::number(level) << "!";
         ui->ResetMono->show();
         ui->connectMono->hide();
-        ui->monoConnections->hide();
+        //ui->monoConnections->hide();
         ui->monoPortLabel->hide();
         ui->label_4->show();
         ui->mono_command->show();
