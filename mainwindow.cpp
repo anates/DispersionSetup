@@ -135,11 +135,11 @@ void MainWindow::on_connect_stepper_clicked()
     connect(this->stepp, &stepperM::curPosUpdate, this, &MainWindow::CurPosUpdate);
     connect(this->stepp, &stepperM::movementFinished, this, &MainWindow::ScanMovementStopped);
     connect(this->stepp, &stepperM::connErr, this, &MainWindow::stepperConnectionError);
-
+    this->hideStepperControls(1);
     ui->connect_stepper->hide();
     ui->stepper_connections->hide();
     ui->stepperPortLabel->hide();
-    this->hideStepperControls(1);
+
 }
 
 void MainWindow::stepperConnectionError(bool error)
@@ -916,6 +916,7 @@ void MainWindow::hideStepperControls(int level)
     switch(level)
     {
     case 0://Lowest level, everything gone before connecting
+        qDebug() << "Level of hiding set to " + QString::number(level) << "!";
         ui->AbsStepperButton->hide();
         ui->RelStepperButton->hide();
         ui->stepper_command->hide();
@@ -932,6 +933,7 @@ void MainWindow::hideStepperControls(int level)
         ui->stepper_connections->show();
         break;
     case 1://Connection positive, no command send yet
+        qDebug() << "Level of hiding set to " + QString::number(level) << "!";
         ui->AbsStepperButton->hide();
         ui->RelStepperButton->hide();
         ui->stepper_command->show();
@@ -949,6 +951,7 @@ void MainWindow::hideStepperControls(int level)
         ui->stepperErrorLabel->hide();
         break;
     case 2://Initcommand send, normal working case
+        qDebug() << "Level of hiding set to " + QString::number(level) << "!";
         ui->AbsStepperButton->show();
         ui->RelStepperButton->show();
         ui->stepper_command->show();
