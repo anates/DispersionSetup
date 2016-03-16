@@ -526,31 +526,6 @@ void MainWindow::on_startScan_clicked()
     //this->step_size = (double)(this->stepper_max_limit-this->stepper_min_limit)/this->steps;//100 steps
     ui->size_steps->setText(QString::number(this->ScanPosData.stepsize));
     debug_out("Running a short scan from " + QString::number(this->ScanPosData.start) + " to " + QString::number(this->ScanPosData.stop) + " with " + QString::number(this->ScanPosData.steps) + " at the wavelength of " + QString::number(this->ScanPosData.waveLenght), 1);
-//    if(this->StepperData.estMovementTime/*this->movementTime*/ != 0)
-//    {
-//        this->homeStepper();
-//        qDebug() << "Waiting till home in automat!";
-//        QThread::sleep(3);
-//        this->getEstimatedMovementTime(fabs(this->StepperData.curPos/*this->current_Stepper_Position*/-this->stepper_min_limit));
-//        QThread::msleep(100);
-//        this->moveStepperToAbsPosition(this->stepper_min_limit);
-//        QThread::sleep((this->StepperData.estMovementTime/*this->movementTime*/));
-//    }
-//    else
-//    {
-//        //this->homeStepper();
-//        qDebug() << "Waiting till home!";
-//        QThread::sleep(3);
-//        this->moveStepperToAbsPosition(this->stepper_min_limit);
-//        qDebug() << "Using stepsize of " << this->step_size;
-//        qDebug() << "Please wait for movement stop and continue with the other button!";
-//        this->getEstimatedMovementTime(this->step_size);
-//        this->moveStepperToAbsPosition(this->stepper_min_limit);
-//        QThread::sleep(3);
-//        return;
-//    }
-
-//    this->getEstimatedMovementTime(this->step_size);
     emit this->moveStepperToAbsPosition(this->ScanPosData.start);
     ui->startScan->hide();
     ui->MovStopped->hide();
@@ -599,7 +574,6 @@ void MainWindow::moveStepperToRelPosition(double pos)
     emit this->RelStepper(pos);
 }
 
-
 void MainWindow::ScanMovementStopped()
 {
     if(this->scanRun)
@@ -608,7 +582,8 @@ void MainWindow::ScanMovementStopped()
         //qDebug() << "Get next value!";
         this->ScanPosData.curStep /*this->curStep*/ += this->ScanPosData.stepsize;//this->step_size;
         emit this->getNewValue();
-        emit this->getNewFFT();
+        if(ui->fftCheckBox->isChecked())
+            emit this->getNewFFT();
     }
     else if(this->multiAqu)
         this->doFullScan();
@@ -634,6 +609,7 @@ void MainWindow::getCurValue(double val)
         double progressValue = (double)(this->StepperData.curPos/*this->current_Stepper_Position*/ - this->ScanPosData.start)/(double)(this->ScanPosData.stop /*this->stepper_max_limit*/ - this->ScanPosData.start);
         ui->scanProgress->setValue((int)(progressValue));
         emit this->moveStepperToAbsPosition(this->StepperData.curPos/*this->current_Stepper_Position*/);
+
         //this->getNewValue();
     }
     else
@@ -661,8 +637,8 @@ void MainWindow::getCurValue(double val)
         //this->step_size = 0;
         this->scanRun = false;
         //this->curStep = 0;
-        this->replot();
     }
+    this->replot();
 }
 
 void MainWindow::getCurFFT(QVector<double> val)
@@ -718,8 +694,6 @@ void MainWindow::write_unformatted_file(const QVector<QPair<double, double> > &D
 
     file.close();
 }
-
-
 
 void MainWindow::init_scan()
 {
