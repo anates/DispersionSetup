@@ -14,16 +14,11 @@
 #include <qwt/qwt_picker_machine.h>
 #include "serial_controller.h"
 #include "add_functions.h"
+#include <basicscanner.h>
 #include "../Test_Audio_processing/audioin.h"
 #include "monochrom.h"
 #include "stepperm.h"
 
-#define MAX 16
-#define MIN 0
-
-#define UNUSED(x) (void)(x)
-
-enum ScanState {Movement, SingleScan, FullScan, FTIR};
 
 namespace Ui {
 class MainWindow;

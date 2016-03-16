@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     stepperm.cpp \
     audio_scanner.cpp \
     data_cleaner.cpp \
-    fftw++.cc
+    fftw++.cc \
+    basicscanner.cpp
 
 HEADERS  += mainwindow.h\
             serial_controller.h \
@@ -40,7 +41,8 @@ HEADERS  += mainwindow.h\
     precision.h \
     seconds.h \
     statistics.h \
-    transposeoptions.h
+    transposeoptions.h \
+    basicscanner.h
 
 QMAKE_CXXFLAGS += -std=c++11 -std=gnu++0x -O3 -fopenmp
 
