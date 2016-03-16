@@ -1011,16 +1011,17 @@ void MainWindow::hideMonoControls(int level)
         break;
     case 1://After connection, before init
         qDebug() << "Level of hiding for mono set to " + QString::number(level) << "!";
-        //ui->connectMono->hide();
+        ui->ResetMono->show();
+        ui->connectMono->hide();
         ui->monoConnections->hide();
-        //ui->monoPortLabel->hide();
+        ui->monoPortLabel->hide();
         ui->label_4->show();
         ui->mono_command->show();
-        //ui->label_9->hide();
+        ui->label_9->hide();
         ui->mono_result->show();
         ui->Mono_Value_1->hide();
         ui->Send_Data_Mono->show();
-        ui->ResetMono->show();
+
         ui->GotoPositionButton->hide();
         ui->curPosMono->show();
         ui->label_7->show();
