@@ -35,6 +35,7 @@ public:
     serial_controller *stepper = NULL, *monochromator = NULL;
     stepperM *stepp = NULL;
     monoChrom *mono = NULL;
+    BasicScanner *scanner = NULL;
 signals:
     //void executeCommandStepper(QString command, double delay);
 
@@ -45,14 +46,17 @@ signals:
     void getCurrentPos(void);
     //Steppersignals
     bool homeMirror();
-    bool AbsStepper(double newPos);
-    bool RelStepper(double newPos);
+    MovingPos AbsStepper(double newPos);
+    MovingPos RelStepper(double newPos);
     void getMovementTime(double pos);
     //To audio
     void getNewValue(void);
     void getNewFFT(void);
 
     void maxValue(double val);
+
+    //To Scanner
+    void doScan(scanData);
 
 private:
     //QWT tools
@@ -102,7 +106,7 @@ private:
 
     void hideMonoControls(int level);
 
-
+    void OpenBasicScanner(void);
 
 
 
@@ -170,8 +174,6 @@ private slots:
 
     void on_GotoPositionButton_clicked();
 
-    void on_fftCheckBox_clicked();
-
     void on_homeStepperButton_clicked();
 
     void on_PosStepperButton_clicked();
@@ -204,6 +206,13 @@ public slots:
     void stepperConnectionError(bool error);
 
     void monoConnectionError(bool error);
+
+    void scanFinished(void);
+
+    void FinishedScanData(scanData data);
+
+    void ScanPercentage(double data);
+
 private:
     Ui::MainWindow *ui;
 };

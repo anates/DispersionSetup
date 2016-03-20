@@ -12,8 +12,18 @@ BasicScanner::BasicScanner(QObject *parent) : QObject(parent)
 void BasicScanner::doScan(scanData data)
 {
     this->jobData = data;
-    this->curState = (data.type == FTIR)?FTIRScan:FullScan;//((data.type == Single)?SingleScan:FullScan);
+    this->curState = (data.type == FTIR)?FTIRScan:((data.type == Single)?SingleScan:FullScan);
 
+}
+
+void BasicScanner::initDevices()
+{
+    emit this->moveToAbsPosition(this->jobData.start);
+    emit this->moveMonoToPos(this->jobData.startWaveLength);
+    this->jobData.curPos = this->jobData.start;
+    this->jobData.curWaveLenght = this->jobData.startWaveLength;
+    this->jobData.curStep = 0;
+    this->Devices = Mono;
 }
 
 void BasicScanner::doStepperScan()
@@ -22,6 +32,8 @@ void BasicScanner::doStepperScan()
     {
         emit this->moveToRelPosition(this->jobData.stepsize);
         this->jobStepper.curPos += this->jobData.stepsize;
+        this->jobData.curPos = this->jobStepper.curPos;
+        this->jobData.curStep++;
     }
     else
         emit this->doNextStep();
@@ -40,9 +52,11 @@ void BasicScanner::processScanValues()
     {
         if(this->jobData.curPos < this->jobData.stop)
             emit this->startstepperScan();
-        else if(this->jobData.curWaveLenght == 1)
-            return;
+        else if(this->jobData.curWaveLenght < this->jobData.stopWaveLength)
+            emit this->startmonoScan();
     }
+    else if(Devices == Mono)
+        emit this->startstepperScan();
 }
 
 void BasicScanner::doFTIRScan()

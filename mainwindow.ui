@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="monoConnections">
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="StepperMotorSettings">
        <attribute name="title">
@@ -261,55 +261,55 @@
           <item row="1" column="1">
            <widget class="QLineEdit" name="stopValue"/>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label_13">
             <property name="text">
              <string>Min. stepper position [mm]</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="QLineEdit" name="minPos"/>
           </item>
-          <item row="4" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_14">
             <property name="text">
              <string>Max. stepper position [mm]</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="5" column="1">
            <widget class="QLineEdit" name="maxPos"/>
           </item>
-          <item row="8" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
+          <item row="9" column="1">
            <widget class="QPushButton" name="startScan">
             <property name="text">
              <string>Start measurement</string>
             </property>
            </widget>
           </item>
-          <item row="10" column="1">
+          <item row="11" column="1">
            <widget class="QPushButton" name="MovStopped">
             <property name="text">
              <string>MovementStopped</string>
             </property>
            </widget>
           </item>
-          <item row="11" column="1">
+          <item row="12" column="1">
            <widget class="QPushButton" name="FullScan">
             <property name="text">
              <string>Do full scan</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="8" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QLabel" name="label_16">
@@ -333,40 +333,50 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="1">
+          <item row="4" column="1">
            <widget class="QLabel" name="min_out_of_range">
             <property name="text">
              <string>TextLabel</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QLabel" name="max_out_of_range">
             <property name="text">
              <string>TextLabel</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="7" column="1">
            <widget class="QLineEdit" name="curWL">
             <property name="readOnly">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="label_17">
             <property name="text">
              <string>Current wavelenght [nm]</string>
             </property>
            </widget>
           </item>
-          <item row="12" column="1">
+          <item row="13" column="1">
            <widget class="QCheckBox" name="fftCheckBox">
             <property name="text">
              <string>Generate FFT data</string>
             </property>
            </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>Wavelength steps [nm]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="WaveLengthSteps"/>
           </item>
          </layout>
         </item>

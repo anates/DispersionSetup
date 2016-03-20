@@ -182,7 +182,7 @@ void stepperMworker::prepareMovement(movementData data)
 {
     this->data = data;
     this->data.toMove = true;
-    double dist = (this->data.moveDir == 1)?this->curPos:(this->data.moveDir == 2)?(fabs(this->curPos - this->data.dist)):this->data.dist;
+    double dist = (this->data.moveDir == Homing)?this->curPos:(this->data.moveDir == Absolute)?(fabs(this->curPos - this->data.dist)):this->data.dist;
     if(dist == 0)
         this->newData("1PT0\x00D\x00A");
     else
@@ -196,9 +196,9 @@ void stepperMworker::start_timer()
 
 void stepperMworker::move(void)
 {
-    if(this->data.moveDir == 2)
+    if(this->data.moveDir == Absolute)
         this->moveAbsolute(this->data.dist);
-    else if(this->data.moveDir == 3)
+    else if(this->data.moveDir == Relative)
         this->moveRelative(this->data.dist);
     else
         this->home();
@@ -206,7 +206,7 @@ void stepperMworker::move(void)
     //qDebug() << "Finished sleeping the time " << this->data.waitingTime << "s!";
     debug_out("Finished sleeping the time " + QString::number(this->data.waitingTime) + "s!", 1);
     this->estimated_movement_time = 0;
-    this->data.moveDir = 2;
+    this->data.moveDir = Absolute;
     this->data.dist = 0;
     this->data.toMove = false;
     this->data.waitingTime = 0;
@@ -243,7 +243,7 @@ stepperM::stepperM(QString port, double min, double max, QObject *parent) : QObj
     connect(this, &stepperM::WhereAmI, newStepper, &stepperMworker::getCurPos);
     connect(this, &stepperM::move, newStepper, &stepperMworker::prepareMovement);
     connect(newStepper, &stepperMworker::updateMovementTime, this, &stepperM::updateTime);
-    connect(newStepper, &stepperMworker::updatePosition, this, &stepperM::updatePosition);
+    //connect(newStepper, &stepperMworker::updatePosition, this, &stepperM::updatePosition);//Maybe not needed
     connect(newStepper, &stepperMworker::movementFinished, this, &stepperM::StpMovFinished);
     connect(newStepper, &stepperMworker::connError, this, &stepperM::connectionError);
     workerThread.start();
@@ -254,7 +254,6 @@ stepperM::~stepperM()
     this->workerThread.quit();
     this->workerThread.wait();
 }
-
 
 bool stepperM::getCurPos()
 {
@@ -277,52 +276,91 @@ void stepperM::updatePosition(double newPos)
     if(newPos != -1)
     {
         this->cur_pos = newPos;
-        //qDebug() << "New Position is: " << newPos;
         debug_out("New Position is: " + QString::number(newPos), 1);
         emit this->curPosUpdate(newPos);
     }
     else
-        //qDebug() << "No new position!";
         debug_out("No new position!", 1);
 }
 
-bool stepperM::moveAbs(double newPos)
+MovingPos stepperM::moveAbs(double newPos)
 {
     if(this->cur_pos == -1)
         this->cur_pos = 0;
-    if(newPos < this->min_pos || newPos > this->max_pos)
-        return false;
+    if(newPos < MIN)
+    {
+        debug_out("Moving abs: " + QString::number(newPos) + "!");
+        movementData data;
+        data.toMove = true;
+        data.dist = MIN;
+        data.moveDir = Absolute;
+        data.waitingTime = 0;
+        this->updatePosition(MIN);
+        emit this->move(data);
+        return Border;
+    }
+    else if(newPos > MAX)
+    {
+        debug_out("Moving abs: " + QString::number(newPos) + "!");
+        movementData data;
+        data.toMove = true;
+        data.dist = MAX;
+        data.moveDir = Absolute;
+        data.waitingTime = 0;
+        this->updatePosition(MAX);
+        emit this->move(data);
+        return Border;
+    }
     else
     {
-        //emit this->AbsMove(newPos);
-        //qDebug() << "Moving abs!";
         debug_out("Moving abs: " + QString::number(newPos) + "!");
         movementData data;
         data.toMove = true;
         data.dist = newPos;
-        data.moveDir = 2;
+        data.moveDir = Absolute;
         data.waitingTime = 0;
         emit this->move(data);
-        return true;
+        this->updatePosition(newPos);
+        return FullRange;
     }
 }
 
-bool stepperM::moveRel(double newPos)
+MovingPos stepperM::moveRel(double newPos)
 {
     if(this->cur_pos == -1)
         this->cur_pos = 0;
-    if((this->cur_pos + newPos) < this->min_pos || (this->cur_pos + newPos) > this->max_pos)
-        return false;
+    if(this->cur_pos + newPos < MIN)
+    {
+        movementData data;
+        data.toMove = true;
+        data.dist = MIN - this->cur_pos;
+        data.moveDir = Relative;
+        data.waitingTime = 0;
+        emit this->move(data);
+        this->updatePosition(MIN);
+        return Border;
+    }
+    else if(this->cur_pos + newPos > MAX)
+    {
+        movementData data;
+        data.toMove = true;
+        data.dist = MAX - this->cur_pos;
+        data.moveDir = Relative;
+        data.waitingTime = 0;
+        emit this->move(data);
+        this->updatePosition(MAX);
+        return Border;
+    }
     else
     {
-        //emit this->moveRel(newPos);
         movementData data;
         data.toMove = true;
         data.dist = newPos;
-        data.moveDir = 3;
+        data.moveDir = Relative;
         data.waitingTime = 0;
         emit this->move(data);
-        return true;
+        this->updatePosition(this->cur_pos + newPos);
+        return FullRange;
     }
 }
 
@@ -333,21 +371,15 @@ void stepperM::getEstimatedMovementTime(double pos)
 
 bool stepperM::home()
 {
-    //qDebug() << "In stepperM: Home";
     debug_out("In stepperM: Home", 1);
-    //emit this->homeMove();
     movementData data;
     data.toMove = true;
     data.dist = 0;
-    data.moveDir = 1;
+    data.moveDir = Homing;
     data.waitingTime = 0;
     emit this->move(data);
-    //qDebug() << "Homing now!";
     debug_out("Homing now!", 1);
-//    data.toMove = true;
-//    data.dist = this->min_pos;
-//    data.moveDir = 2;
-//    emit this->move(data);
+    this->updatePosition(0);
     return true;
 }
 

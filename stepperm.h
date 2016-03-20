@@ -9,7 +9,8 @@
 #include "data_cleaner.h"
 
 #define TIME_OUT 5000
-
+#define MIN 0
+#define MAX 16
 
 class stepperMworker : public QObject
 {
@@ -81,8 +82,8 @@ signals:
     void connErr(bool);
 public slots:
     void getEstimatedMovementTime(double pos);
-    bool moveAbs(double newPos);
-    bool moveRel(double newPos);
+    MovingPos moveAbs(double newPos);
+    MovingPos moveRel(double newPos);
     bool home(void);
     bool getCurPos(void);
     void updatePosition(double newPos);

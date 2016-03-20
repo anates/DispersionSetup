@@ -15,18 +15,20 @@
 
 enum ScanType {Single, Full, FTIR};
 
+enum MovingPos {Border, FullRange, None}; //Moving to border, to full range, or nothing
+
+enum MovingDir {Absolute, Relative, Homing};
+
 void vectorToMap(const QVector<QPair<double, double> > &indata, QMap<double, double> &outdata);//Assumes that all values are already ordered
 
 void debug_out(QString data, int debug_level = 0);
 
-
 struct movementData{
-    int moveDir = 0;
+    MovingDir moveDir = Homing;
     double dist = 0;
     double waitingTime = 0;
     bool toMove = false;
 };
-
 
 class scanData{
 public:

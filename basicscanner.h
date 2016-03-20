@@ -22,7 +22,7 @@ private slots:
     void doMonoScan(void);
     void doFTIRScan(void);
     void processScanValues(void);
-
+    void initDevices(void);
 
 public:
     explicit BasicScanner(QObject *parent = 0);
@@ -39,6 +39,7 @@ signals:
     void startFTIRScan(void);
     void moveMonoToPos(int pos);
     void FinishedScanData(scanData);
+    void init(void);
 public slots:
     void doScan(scanData data);
     void moveToNextPosition(void);
